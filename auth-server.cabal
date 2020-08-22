@@ -1,0 +1,108 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 5a8472b81b2069c2ddceb76ccf902a2c314ddaee9c846e576743f10158f04ad3
+
+name:           auth-server
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/githubuser/auth-server#readme>
+homepage:       https://github.com/githubuser/auth-server#readme
+bug-reports:    https://github.com/githubuser/auth-server/issues
+author:         Author name here
+maintainer:     example@example.com
+copyright:      2020 Author name here
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/githubuser/auth-server
+
+library
+  exposed-modules:
+      AppContext
+      DB
+      Lib
+      Login
+      Register
+      User
+  other-modules:
+      Paths_auth_server
+  hs-source-dirs:
+      src
+  build-depends:
+      acid-state
+    , aeson
+    , base >=4.7 && <5
+    , containers
+    , http-types
+    , mtl
+    , password
+    , safecopy
+    , servant-server
+    , text
+    , transformers
+    , uuid
+    , wai
+    , warp
+  default-language: Haskell2010
+
+executable auth-server-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_auth_server
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      acid-state
+    , aeson
+    , auth-server
+    , base
+    , containers
+    , http-types
+    , mtl
+    , password
+    , safecopy
+    , servant-server
+    , text
+    , transformers
+    , uuid
+    , wai
+    , warp
+  default-language: Haskell2010
+
+test-suite auth-server-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_auth_server
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      acid-state
+    , aeson
+    , auth-server
+    , base
+    , containers
+    , hspec
+    , hspec-wai
+    , hspec-wai-json
+    , http-types
+    , mtl
+    , password
+    , safecopy
+    , servant-server
+    , text
+    , transformers
+    , uuid
+    , wai
+    , warp
+  default-language: Haskell2010
