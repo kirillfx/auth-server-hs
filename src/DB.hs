@@ -27,10 +27,14 @@ $(deriveSafeCopy 0 'base ''Database)
 -- API
 
 registerUser :: User -> Update Database (Either String User)
-registerUser u = do
+registerUser user = do
   (Database m) <- get
-  put (Database (Map.insert (userId u) u m))
-  return $ Right u
+  case (safeHead . fmap snd . Map.toList . Map.filter (\u -> email user == email u) $ m) of
+    Left e -> do
+      put (Database (Map.insert (userId user) user m))
+      return $ Right user
+    Right user ->
+      return $ Left "User already present"
 
 check :: Text -> User -> Either String User
 check p u =
@@ -51,7 +55,7 @@ getUser :: Text -> Text -> Query Database (Either String User)
 getUser e p = do
   Database m <- ask
   let p' = mkPassword p
-      u = (safeHead . fmap snd . Map.toList . Map.filter (\u -> email u == e) $ m) -- >>= (check p)
+      u = (safeHead . fmap snd . Map.toList . Map.filter (\u -> email u == e) $ m) >>= (check p)
   return u
 
 deleteUser :: Text -> Update Database (Either String ())
