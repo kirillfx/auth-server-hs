@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module User where
 
@@ -24,4 +25,10 @@ $(deriveJSON defaultOptions ''User)
 $(deriveSafeCopy 0 'base ''User)
 
 instance ToJWT User
+
 instance FromJWT User
+
+type instance BasicAuthCfg = BasicAuthData -> IO (AuthResult User)
+
+instance FromBasicAuthData User where
+  fromBasicAuthData authData authCheckFunction = authCheckFunction authData

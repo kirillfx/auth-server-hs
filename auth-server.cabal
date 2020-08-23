@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7381dc62e835d19d6cb572b8e149ebaaa00ed6a86e38e7a14f8a3ce51a9d1ba6
+-- hash: 3a61a4b412a0a6ea60361997b716e5d3f5769ff7bc25eae4ba26ae4dfc2d805a
 
 name:           auth-server
 version:        0.1.0.0
@@ -50,6 +50,7 @@ library
       acid-state
     , aeson
     , base >=4.7 && <5
+    , bytestring
     , containers
     , http-types
     , jose
@@ -78,6 +79,7 @@ executable auth-server-exe
     , aeson
     , auth-server
     , base
+    , bytestring
     , containers
     , http-types
     , jose
@@ -107,6 +109,7 @@ test-suite auth-server-test
     , aeson
     , auth-server
     , base
+    , bytestring
     , containers
     , hspec
     , hspec-wai

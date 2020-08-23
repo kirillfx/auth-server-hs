@@ -14,5 +14,5 @@ main = do
   db <- openLocalStateFrom "db" (Database mempty)
   let ctx = AppContext db
       myKey = fromSecret "asdvndipsvnjivnfisdpvndfvifnifpsvsid"
-  startApp myKey ctx
+  startCombinedApp myKey ctx
   closeAcidState db

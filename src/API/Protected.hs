@@ -5,6 +5,7 @@
 module API.Protected where
 
 import API.Types
+import Data.ByteString
 import Servant hiding (BasicAuth)
 import Servant.Auth.Server
 import Servant.Client
@@ -13,5 +14,8 @@ import User
 
 -- Protected API
 type ProtectedAPI =
-  "login" :> Auth '[BasicAuth] User :> Get '[JSON] SlimUser
-    :<|> "userDetails" :> Auth '[BasicAuth] User :> Get '[JSON] User
+  "login" :> Auth '[BasicAuth] User :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
+    :<|> "userDetails" :> Auth '[JWT, Cookie] User :> Get '[JSON] User
+
+protectedApi :: Proxy ProtectedAPI
+protectedApi = Proxy
