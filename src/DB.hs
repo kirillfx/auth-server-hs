@@ -1,15 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module DB
-  ( insertUser,
-    getUsers,
-    getUser,
-    removeUser,
-    Database (..),
-  )
-where
+module DB where
 
+import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader (ask)
 import Control.Monad.State (get, put)
 import Data.Acid
@@ -20,6 +14,9 @@ import Data.SafeCopy
 import Data.Text (Text)
 import Data.Typeable
 import Data.UUID
+import Data.UUID.V4 (nextRandom)
+import Register (Register)
+import qualified Register
 import User
 
 data Database = Database (Map UUID User)
@@ -29,8 +26,11 @@ $(deriveSafeCopy 0 'base ''Database)
 
 -- API
 
-insertUser :: User -> Update Database (Either String User)
-insertUser u = undefined
+registerUser :: User -> Update Database (Either String User)
+registerUser u = do
+  (Database m) <- get
+  put (Database (Map.insert (userId u) u m))
+  return $ Right u
 
 check :: Text -> User -> Either String User
 check p u =
@@ -39,28 +39,31 @@ check p u =
         PasswordCheckSuccess -> Right u
         PasswordCheckFail -> Left "Wrong password"
 
-getUsers :: Query Database [User]
-getUsers = do
+getAllUsers :: Query Database [User]
+getAllUsers = do
   Database m <- ask
   return . fmap snd . Map.toList $ m
 
+safeHead [] = Left "Not found"
+safeHead (x : _) = Right x
+
 getUser :: Text -> Text -> Query Database (Either String User)
-getUser l p = do
+getUser e p = do
   Database m <- ask
   let p' = mkPassword p
-      u = (safeHead . fmap snd . Map.toList . Map.filter (\u -> username u == l) $ m) >>= (check p)
+      u = (safeHead . fmap snd . Map.toList . Map.filter (\u -> email u == e) $ m) -- >>= (check p)
   return u
-  where
-    safeHead [] = Left "Not found"
-    safeHead (x : _) = Right x
 
-removeUser :: UUID -> Update Database (Either String ())
-removeUser key = do
+deleteUser :: Text -> Update Database (Either String ())
+deleteUser e = do
   (Database m) <- get
-  put (Database (Map.delete key m))
-  return $ Right ()
+  case safeHead . fmap snd . Map.toList . Map.filter (\u -> email u == e) $ m of
+    Left e -> return . Left $ e
+    Right u -> do
+      put (Database (Map.delete (userId u) m))
+      return $ Right ()
 
-$(makeAcidic ''Database ['insertUser, 'getUser, 'removeUser])
+$(makeAcidic ''Database ['registerUser, 'getUser, 'getAllUsers, 'deleteUser])
 
 -- dbInsertPerson :: Person -> Update PersonDB ()
 -- dbInsertPerson person = do

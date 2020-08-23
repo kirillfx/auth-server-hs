@@ -24,6 +24,7 @@ dependencies:
   - transformers
   - aeson
   - servant-server
+  - servant-client
   - wai
   - warp
   - text
@@ -64,3 +65,6 @@ tests:
       - hspec-wai
       - hspec-wai-json
       - aeson
+      - warp
+      - servant-client
+      - http-client

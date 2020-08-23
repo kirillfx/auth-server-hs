@@ -4,6 +4,7 @@ module Register where
 
 import Data.Aeson
 import Data.Aeson.TH
+import Data.SafeCopy
 import Data.Text
 
 data Register = Register
@@ -14,3 +15,4 @@ data Register = Register
   deriving (Eq, Show)
 
 $(deriveJSON defaultOptions ''Register)
+$(deriveSafeCopy 0 'base ''Register)

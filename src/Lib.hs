@@ -5,18 +5,29 @@
 module Lib
   ( startApp,
     app,
+    API,
+    getUsers,
+    postRegister,
+    postLogin,
+    postDelete,
   )
 where
 
 import AppContext
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Reader
+import DB
+import Data.Acid
+import Data.Password.Bcrypt
 import Data.Text (Text)
-import Login
+import Data.UUID.V4 (nextRandom)
+import Login (Login (..))
+import qualified Login
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Register
 import Servant
+import Servant.Client
 import User
 
 type ReaderHandler = ReaderT AppContext Handler
@@ -39,22 +50,39 @@ app ctx = serve api (server ctx)
 
 -- Handlers
 users :: ReaderHandler [User]
-users = undefined
+users = do
+  (AppContext database) <- ask
+  liftIO $ query database GetAllUsers
 
 register :: Register -> ReaderHandler User
-register r = do
+register r@(Register u e p) = do
   liftIO . print $ "Register" <> show r
-  return undefined
+  i <- liftIO nextRandom
+  p' <- liftIO $ hashPassword (mkPassword p)
+  let newUser = User i u e (unPasswordHash p')
+  (AppContext database) <- ask
+  eitherUser <- liftIO $ update database (RegisterUser newUser)
+  case eitherUser of
+    Left e -> throwError err500 {errBody = "Can't register"}
+    Right u -> return u
 
 login :: Login -> ReaderHandler User
-login l = do
-  liftIO . print $ "Login " <> show l
-  return undefined
+login (Login e p) = do
+  liftIO . print $ "Login" <> show e
+  (AppContext database) <- ask
+  eitherUser <- liftIO $ query database (GetUser e p)
+  case eitherUser of
+    Left e -> throwError err500 {errBody = "Can't login"}
+    Right u -> return u
 
 delete :: Text -> ReaderHandler ()
 delete email = do
   liftIO $ print $ "Trying to delete " <> email
-  return undefined
+  (AppContext database) <- ask
+  eitherDelete <- liftIO $ update database (DeleteUser email)
+  case eitherDelete of
+    Left e -> throwError err500 {errBody = "Can't delete"}
+    Right u -> return u
 
 -- make Application
 server :: AppContext -> Server API
@@ -65,8 +93,9 @@ server ctx =
 readerServerT :: ServerT API ReaderHandler
 readerServerT = users :<|> register :<|> login :<|> delete
 
--- users_list :: [User]
--- users_list =
---   [ User 1 "Isaac" "isaac@gmail.com" "123",
---     User 2 "Albert" "albert@gmail.com" "456"
---   ]
+-- Servant Client
+getUsers :: ClientM [User]
+postRegister :: Register -> ClientM User
+postLogin :: Login -> ClientM User
+postDelete :: Text -> ClientM ()
+(getUsers :<|> postRegister :<|> postLogin :<|> postDelete) = client api

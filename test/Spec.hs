@@ -1,21 +1,29 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Main (main) where
 
 import AppContext
+import Control.Exception
 import Control.Monad.IO.Class (liftIO)
 import DB
 import Data.Acid
 import Data.Aeson
+import Data.Either (isRight)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import Data.UUID.V4 (nextRandom)
-import Lib (app)
+import Lib
 import Login
+import Network.HTTP.Client hiding (Proxy)
 import Network.HTTP.Types (methodPost)
 import Network.HTTP.Types.Header (Header)
+import qualified Network.Wai.Handler.Warp as Warp
 import Register
+import Servant
+import Servant.Client
 import Test.Hspec
 import Test.Hspec.Wai
 import Test.Hspec.Wai.JSON
@@ -42,39 +50,66 @@ postJson path = request methodPost path headers
 
 -- users = encode users_list
 
+app' = do
+  bracket
+    (openLocalStateFrom "db" (Database Map.empty))
+    closeAcidState
+    ( \db ->
+        return $ app (AppContext db)
+    )
+
+appState = do
+  db <- openLocalStateFrom "db" (Database Map.empty)
+  return (db, app (AppContext db))
+
+withUserApp :: (Warp.Port -> IO ()) -> IO ()
+withUserApp action =
+  bracket
+    (openLocalStateFrom "db" (Database Map.empty))
+    closeAcidState
+    ( \db ->
+        Warp.testWithApplication (pure $ app (AppContext db)) action
+    )
+
 spec :: Spec
-spec = do
-  -- Prepare
-  db <- liftIO $ openLocalStateFrom "db" (Database Map.empty)
-  let ctx = AppContext db
-      app' = app ctx
-  -- HSPEC
-  with (return app') $ do
-    describe "GET /users" $ do
-      it "responds with 200" $ do
-        get "/users" `shouldRespondWith` 200
-    -- it "responds with [User]" $ do
-    --   -- let users = "[{\"userId\":1,\"userFirstName\":\"Isaac\",\"userLastName\":\"Newton\"},{\"userId\":2,\"userFirstName\":\"Albert\",\"userLastName\":\"Einstein\"}]"
-    --   get "/users" `shouldRespondWith` 200 {matchBody = MatchBody bodyMatcher} -- {matchHeaders = ["Content-Type" <:> "application/json;charset=utf-8"]}
-    describe "POST /register" $ do
-      it "responds with 200" $ do
-        let bs = encode (Register "kirillfx" "kirillfx@gmail.com" "123")
-        liftIO $ print bs
-        postJson "/register" bs
-          `shouldRespondWith` 200
+spec =
+  around withUserApp $
+    do
+      let apiClient = client (Proxy :: Proxy API)
+      baseUrl <- runIO $ parseBaseUrl "http://localhost"
+      manager <- runIO $ newManager defaultManagerSettings
+      let clientEnv port = mkClientEnv manager (baseUrl {baseUrlPort = port})
+      describe
+        "/getUsers"
+        $ do
+          it "responds with 200" $ \port -> do
+            res <- runClientM getUsers (clientEnv port)
+            -- get "/users" `shouldRespondWith` 200
+            liftIO $ print res
+            isRight res `shouldBe` True
 
-    describe "POST /login" $ do
-      it "responds with 200" $ do
-        let bs = encode (Login "kirillfx@gmail.com" "123")
-        liftIO $ print bs
-        postJson "/login" bs
-          `shouldRespondWith` 200
+      describe
+        "/register"
+        $ do
+          it "responds with 200" $ \port -> do
+            let r = Register "kirillfx" "kirillfx@gmail.com" "123"
+            res <- runClientM (postRegister r) (clientEnv port)
+            liftIO $ print res
+            isRight res `shouldBe` True
 
-    describe "POST /delete" $ do
-      it "responds with 200" $ do
-        let bs = encode $ T.pack "kirillfx@gmail.com"
-        postJson "/delete" bs `shouldRespondWith` 200
+      describe
+        "/login"
+        $ do
+          it "responds with 200" $ \port -> do
+            let l = Login "kirillfx@gmail.com" "123"
+            res <- runClientM (postLogin l) (clientEnv port)
+            print res
+            isRight res `shouldBe` True
 
-  liftIO $ closeAcidState db
-  where
-    app' = do
+      describe
+        "/delete"
+        $ do
+          it "responds with 200" $ \port -> do
+            res <- runClientM (postDelete "kirillfx@gmail.com") (clientEnv port)
+            print res
+            isRight res `shouldBe` True
