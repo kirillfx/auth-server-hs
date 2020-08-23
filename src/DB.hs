@@ -68,14 +68,3 @@ deleteUser e = do
       return $ Right ()
 
 $(makeAcidic ''Database ['registerUser, 'getUser, 'getAllUsers, 'deleteUser])
-
--- dbInsertPerson :: Person -> Update PersonDB ()
--- dbInsertPerson person = do
---   let key = personId person
---   PersonDB m <- S.get
---   S.put (PersonDB (Map.insert key person m))
-
--- dbGetPerson :: Key -> Query PersonDB (Maybe Person)
--- dbGetPerson key = do
---   PersonDB m <- ask
---   return (Map.lookup key m)
