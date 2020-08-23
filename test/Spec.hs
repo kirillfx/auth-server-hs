@@ -36,20 +36,6 @@ postJson path = request methodPost path headers
   where
     headers = [("Content-Type", "application/json")]
 
--- users_list :: IO [User]
--- users_list =
---   u1 <- fmap (\i -> User i "Isaac" "isaac@gmail.com" "123") nextRandom
---   [ ,
---     User 2 "Albert" "albert@gmail.com" "456"
---   ]
-
--- bodyMatcher :: [Header] -> Body -> Maybe String
--- bodyMatcher _ body = case (decode body :: Maybe [User]) of
---   Just xs -> if xs == users_list then Nothing else Just "Wrong output"
---   _ -> Just "This is how we represent failure: this message will be printed"
-
--- users = encode users_list
-
 app' = do
   bracket
     (openLocalStateFrom "db" (Database Map.empty))
