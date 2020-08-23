@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d44a14ec4b4ffb17c2fde58c947a5bc1dd59c5fcb9bf0531a10d4ef498c2da7a
+-- hash: 05b64d9fb2d09e3f0af123482f76e6391856a1a6d0134ef1be55e9cd8ea57f9b
 
 name:           auth-server
 version:        0.1.0.0
@@ -31,6 +31,7 @@ library
       Lib
       Login
       Register
+      SlimUser
       User
   other-modules:
       Paths_auth_server

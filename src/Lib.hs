@@ -28,12 +28,13 @@ import Network.Wai.Handler.Warp
 import Register
 import Servant
 import Servant.Client
+import SlimUser
 import User
 
 type ReaderHandler = ReaderT AppContext Handler
 
 type API =
-  "users" :> Get '[JSON] [User]
+  "users" :> Get '[JSON] [SlimUser]
     :<|> "register" :> ReqBody '[JSON] Register :> Post '[JSON] User
     :<|> "login" :> ReqBody '[JSON] Login :> Post '[JSON] User
     :<|> "delete" :> ReqBody '[JSON] Text :> Post '[JSON] ()
@@ -49,10 +50,11 @@ app :: AppContext -> Application
 app ctx = serve api (server ctx)
 
 -- Handlers
-users :: ReaderHandler [User]
+users :: ReaderHandler [SlimUser]
 users = do
   (AppContext database) <- ask
-  liftIO $ query database GetAllUsers
+  us <- liftIO $ query database GetAllUsers
+  return (fmap fromUser us)
 
 register :: Register -> ReaderHandler User
 register r@(Register u e p) = do
@@ -94,7 +96,7 @@ readerServerT :: ServerT API ReaderHandler
 readerServerT = users :<|> register :<|> login :<|> delete
 
 -- Servant Client
-getUsers :: ClientM [User]
+getUsers :: ClientM [SlimUser]
 postRegister :: Register -> ClientM User
 postLogin :: Login -> ClientM User
 postDelete :: Text -> ClientM ()
