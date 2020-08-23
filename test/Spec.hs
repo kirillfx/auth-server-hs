@@ -23,6 +23,7 @@ import Network.HTTP.Types.Header (Header)
 import qualified Network.Wai.Handler.Warp as Warp
 import Register
 import Servant
+import Servant.Auth.Server
 import Servant.Client
 import Test.Hspec
 import Test.Hspec.Wai
@@ -41,7 +42,8 @@ app' = do
     (openLocalStateFrom "db" (Database Map.empty))
     closeAcidState
     ( \db ->
-        return $ app (AppContext db)
+        let myKey = fromSecret "asdvndipsvnjivnfisdpvndfvifnifpsvsid"
+         in return $ app myKey (AppContext db)
     )
 
 appState = do
@@ -54,7 +56,8 @@ withUserApp action =
     (openLocalStateFrom "db" (Database Map.empty))
     closeAcidState
     ( \db ->
-        Warp.testWithApplication (pure $ app (AppContext db)) action
+        let myKey = fromSecret "asdvndipsvnjivnfisdpvndfvifnifpsvsid"
+         in Warp.testWithApplication (pure $ app myKey (AppContext db)) action
     )
 
 spec :: Spec

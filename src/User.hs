@@ -8,6 +8,7 @@ import Data.Password.Bcrypt
 import Data.SafeCopy
 import Data.Text (Text)
 import Data.UUID
+import Servant.Auth.Server
 
 $(deriveSafeCopy 0 'base ''UUID)
 
@@ -21,3 +22,6 @@ data User = User
 
 $(deriveJSON defaultOptions ''User)
 $(deriveSafeCopy 0 'base ''User)
+
+instance ToJWT User
+instance FromJWT User

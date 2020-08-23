@@ -34,6 +34,8 @@ dependencies:
   - safecopy
   - acid-state
   - containers
+  - servant-auth-server
+  - jose
 
 library:
   source-dirs: src

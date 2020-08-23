@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 05b64d9fb2d09e3f0af123482f76e6391856a1a6d0134ef1be55e9cd8ea57f9b
+-- hash: 7381dc62e835d19d6cb572b8e149ebaaa00ed6a86e38e7a14f8a3ce51a9d1ba6
 
 name:           auth-server
 version:        0.1.0.0
@@ -26,11 +26,20 @@ source-repository head
 
 library
   exposed-modules:
+      API
+      API.Protected
+      API.Public
+      API.Types
       AppContext
+      Client
       DB
       Lib
       Login
       Register
+      Server
+      Server.Handlers
+      Server.Protected
+      Server.Public
       SlimUser
       User
   other-modules:
@@ -43,9 +52,11 @@ library
     , base >=4.7 && <5
     , containers
     , http-types
+    , jose
     , mtl
     , password
     , safecopy
+    , servant-auth-server
     , servant-client
     , servant-server
     , text
@@ -69,9 +80,11 @@ executable auth-server-exe
     , base
     , containers
     , http-types
+    , jose
     , mtl
     , password
     , safecopy
+    , servant-auth-server
     , servant-client
     , servant-server
     , text
@@ -100,9 +113,11 @@ test-suite auth-server-test
     , hspec-wai-json
     , http-client
     , http-types
+    , jose
     , mtl
     , password
     , safecopy
+    , servant-auth-server
     , servant-client
     , servant-server
     , text

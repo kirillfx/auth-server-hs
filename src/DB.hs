@@ -48,6 +48,7 @@ getAllUsers = do
   Database m <- ask
   return . fmap snd . Map.toList $ m
 
+safeHead :: [b] -> Either String b
 safeHead [] = Left "Not found"
 safeHead (x : _) = Right x
 
