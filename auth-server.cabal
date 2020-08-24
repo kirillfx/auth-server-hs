@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e6742130e5980a0b79852341fb1deceec230c5eb18d21a0c626f41ee661704f8
+-- hash: 090fb4debd3fb0c626efa2cca0548791a7f7354ce5699b32bc1865eef3c683b8
 
 name:           auth-server
 version:        0.1.0.0
@@ -90,6 +90,7 @@ executable auth-server-exe
     , servant-server
     , text
     , transformers
+    , unix
     , uuid
     , wai
     , warp

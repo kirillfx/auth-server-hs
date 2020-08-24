@@ -9,21 +9,21 @@ import AppContext
 import Control.Monad.Reader
 import Crypto.JOSE.JWK (JWK)
 import Network.Wai
-import Network.Wai.Handler.Warp
+import Network.Wai.Handler.Warp (Settings, runSettings)
 import Servant hiding (BasicAuth)
 import Servant.Auth.Server
 import Server.Protected
 import Server.Public
 import User
 
-startApp :: JWK -> AppContext -> IO ()
-startApp myKey ctx =
+startApp :: Settings -> JWK -> AppContext -> IO ()
+startApp settings myKey ctx =
   -- Servant context assembly
   let jwtCfg = defaultJWTSettings myKey
       cookieCfg = defaultCookieSettings
       authCfg = authCheck (database ctx) :: BasicAuthCfg
       cfg = cookieCfg :. jwtCfg :. authCfg :. EmptyContext
-   in run 8080 (mkApplication cfg cookieCfg jwtCfg ctx) -- run
+   in runSettings settings (mkApplication cfg cookieCfg jwtCfg ctx) -- run
 
 -- Make Wai.Application from parts
 mkApplication ::
