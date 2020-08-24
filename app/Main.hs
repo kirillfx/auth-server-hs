@@ -11,6 +11,7 @@ import Lib
 import Network.Wai.Handler.Warp (Settings, defaultSettings, setGracefulShutdownTimeout, setInstallShutdownHandler, setPort)
 import Servant.Auth.Server
 import Server
+import System.Exit (exitSuccess)
 import System.Posix.Signals (Handler (..), installHandler, sigINT, sigTERM)
 
 mkSettings :: IO () -> Settings
@@ -36,3 +37,4 @@ main = do
         let ctx = AppContext db
          in startApp settings myKey ctx
     )
+  exitSuccess
