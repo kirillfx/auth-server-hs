@@ -26,11 +26,13 @@ mkSettings shutdownAction =
 
 main :: IO ()
 main = do
-  db <- openLocalStateFrom "db" (Database mempty)
-  let ctx = AppContext db
-      myKey = fromSecret "asdvndipsvnjivnfisdpvndfvifnifpsvsid"
+  let myKey = fromSecret "asdvndipsvnjivnfisdpvndfvifnifpsvsid"
       shutdownAction = print "Shutting down"
       settings = mkSettings shutdownAction
-  startApp settings myKey ctx
-  closeAcidState db
-  print "Acid State closed"
+  bracket
+    (openLocalStateFrom "db" (Database mempty))
+    (\db -> closeAcidState db >> print "Acid State closed")
+    ( \db ->
+        let ctx = AppContext db
+         in startApp settings myKey ctx
+    )
