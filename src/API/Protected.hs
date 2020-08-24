@@ -18,6 +18,7 @@ type ProtectedAPI =
   "login" :> Auth '[BasicAuth] User :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
     :<|> "userDetails" :> Auth '[JWT, Cookie] User :> Get '[JSON] User
     :<|> "delete" :> Auth '[JWT, Cookie] User :> ReqBody '[JSON] Text :> Post '[JSON] ()
+    :<|> "auth" :> Auth '[JWT, Cookie] User :> Get '[JSON] NoContent
 
 protectedApi :: Proxy ProtectedAPI
 protectedApi = Proxy

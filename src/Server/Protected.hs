@@ -34,7 +34,7 @@ usersH = do
   return (fmap fromUser us)
 
 protectedServerT :: CookieSettings -> JWTSettings -> ServerT ProtectedAPI ReaderHandler
-protectedServerT cs jwts = loginH :<|> userDetailsH :<|> deleteUserH
+protectedServerT cs jwts = loginH :<|> userDetailsH :<|> deleteUserH :<|> authH
   where
     loginH :: AuthResult User -> ReaderHandler (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
     loginH (Authenticated user) = do
@@ -64,6 +64,10 @@ protectedServerT cs jwts = loginH :<|> userDetailsH :<|> deleteUserH
         Left e -> throwError err500 {errBody = "Can't delete"}
         Right u -> return ()
     deleteUserH _ _ = throwError err401 {errBody = "Not authorized"}
+
+    authH :: AuthResult User -> ReaderHandler NoContent
+    authH (Authenticated user) = return NoContent
+    authH _ = throwError err401 {errBody = "Not authorized"}
 
 -- Basic auth check function for working with AcidState Database
 authCheck :: AcidState Database -> BasicAuthData -> IO (AuthResult User)

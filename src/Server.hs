@@ -16,16 +16,16 @@ import Server.Protected
 import Server.Public
 import User
 
--- Combined
-
 startApp :: JWK -> AppContext -> IO ()
 startApp myKey ctx =
+  -- Servant context assembly
   let jwtCfg = defaultJWTSettings myKey
       cookieCfg = defaultCookieSettings
       authCfg = authCheck (database ctx) :: BasicAuthCfg
       cfg = cookieCfg :. jwtCfg :. authCfg :. EmptyContext
-   in run 8080 (mkApplication cfg cookieCfg jwtCfg ctx)
+   in run 8080 (mkApplication cfg cookieCfg jwtCfg ctx) -- run
 
+-- Make Wai.Application from parts
 mkApplication ::
   Context
     '[ CookieSettings,
@@ -38,6 +38,7 @@ mkApplication ::
   Application
 mkApplication cfg cs jwts ctx = serveWithContext api cfg (mkServer cfg cs jwts ctx)
 
+-- Make Servant Server
 mkServer ::
   Context
     '[ CookieSettings,
@@ -53,5 +54,6 @@ mkServer cfg cs jwts ctx =
       cfg' = Proxy :: Proxy '[CookieSettings, JWTSettings, BasicAuthCfg]
    in hoistServerWithContext api cfg' nt (serverT cs jwts)
 
+-- Make ServerT from handlers and settings
 serverT :: CookieSettings -> JWTSettings -> ServerT API ReaderHandler
 serverT cs jwts = publicServerT :<|> (protectedServerT cs jwts)
