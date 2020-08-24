@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3a61a4b412a0a6ea60361997b716e5d3f5769ff7bc25eae4ba26ae4dfc2d805a
+-- hash: e6742130e5980a0b79852341fb1deceec230c5eb18d21a0c626f41ee661704f8
 
 name:           auth-server
 version:        0.1.0.0
@@ -37,7 +37,6 @@ library
       Login
       Register
       Server
-      Server.Handlers
       Server.Protected
       Server.Public
       SlimUser

@@ -33,26 +33,8 @@ usersH = do
   us <- liftIO $ query database GetAllUsers
   return (fmap fromUser us)
 
--- loginH (Login e p) = do
---   liftIO . print $ "Login" <> show e
---   (AppContext database) <- ask
---   eitherUser <- liftIO $ query database (GetUser e p)
---   case eitherUser of
---     Left e -> throwError err500 {errBody = "Can't login"}
---     Right u -> return u
-
--- deleteH :: Text -> ReaderHandler ()
--- deleteH email = do
---   liftIO $ print $ "Trying to delete " <> email
---   (AppContext database) <- ask
---   eitherDelete <- liftIO $ update database (DeleteUser email)
---   case eitherDelete of
---     Left e -> throwError err500 {errBody = "Can't delete"}
---     Right u -> return u
-
 protectedServerT :: CookieSettings -> JWTSettings -> ServerT ProtectedAPI ReaderHandler
--- protectedServerT _ = throwAll err401 {errBody = "Not Authenticated"}
-protectedServerT cs jwts = loginH :<|> userDetailsH
+protectedServerT cs jwts = loginH :<|> userDetailsH :<|> deleteUserH
   where
     loginH :: AuthResult User -> ReaderHandler (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
     loginH (Authenticated user) = do
@@ -68,9 +50,20 @@ protectedServerT cs jwts = loginH :<|> userDetailsH
               liftIO $ print token
               return $ applyCookies user
     loginH _ = throwError err401 {errBody = "Can't auth"}
+
     userDetailsH :: AuthResult User -> ReaderHandler User
     userDetailsH (Authenticated user) = return user
     userDetailsH _ = throwError err401 {errBody = "Can't auth"}
+
+    deleteUserH :: AuthResult User -> Text -> ReaderHandler ()
+    deleteUserH (Authenticated user) email = do
+      liftIO $ print $ "Trying to delete " <> email
+      (AppContext database) <- ask
+      eitherDelete <- liftIO $ update database (DeleteUser email)
+      case eitherDelete of
+        Left e -> throwError err500 {errBody = "Can't delete"}
+        Right u -> return ()
+    deleteUserH _ _ = throwError err401 {errBody = "Not authorized"}
 
 -- Basic auth check function for working with AcidState Database
 authCheck :: AcidState Database -> BasicAuthData -> IO (AuthResult User)

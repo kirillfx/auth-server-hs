@@ -12,7 +12,6 @@ import Network.Wai
 import Network.Wai.Handler.Warp
 import Servant hiding (BasicAuth)
 import Servant.Auth.Server
-import Server.Handlers
 import Server.Protected
 import Server.Public
 import User
