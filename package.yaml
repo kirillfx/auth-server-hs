@@ -53,6 +53,7 @@ executables:
       - base
       - auth-server
       - unix
+      - dotenv
 
 tests:
   auth-server-test:

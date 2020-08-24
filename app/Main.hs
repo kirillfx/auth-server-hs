@@ -3,15 +3,18 @@
 module Main where
 
 import AppContext
+import Configuration.Dotenv
 import Control.Exception (bracket)
 import Control.Monad (void)
 import DB
 import Data.Acid
+import Data.String (fromString)
 import Lib
 import Network.Wai.Handler.Warp (Settings, defaultSettings, setGracefulShutdownTimeout, setInstallShutdownHandler, setPort)
 import Servant.Auth.Server
 import Server
-import System.Exit (exitSuccess)
+import System.Environment (lookupEnv)
+import System.Exit (exitFailure, exitSuccess)
 import System.Posix.Signals (Handler (..), installHandler, sigINT, sigTERM)
 
 mkSettings :: IO () -> Settings
@@ -27,14 +30,24 @@ mkSettings shutdownAction =
 
 main :: IO ()
 main = do
-  let myKey = fromSecret "asdvndipsvnjivnfisdpvndfvifnifpsvsid"
-      shutdownAction = print "Shutting down"
-      settings = mkSettings shutdownAction
-  bracket
-    (openLocalStateFrom "db" (Database mempty))
-    (\db -> closeAcidState db >> print "Acid State closed")
-    ( \db ->
-        let ctx = AppContext db
-         in startApp settings myKey ctx
-    )
-  exitSuccess
+  -- Read dotenv
+  void $ loadFile defaultConfig
+
+  -- Env lookups
+  mSecret <- lookupEnv "SECRET"
+
+  case mSecret of
+    -- Exit with failure
+    Nothing -> exitFailure
+    -- Launch server
+    Just myKey -> do
+      let shutdownAction = print "Shutting down"
+          settings = mkSettings shutdownAction
+      bracket
+        (openLocalStateFrom "db" (Database mempty))
+        (\db -> closeAcidState db >> print "Acid State closed")
+        ( \db ->
+            let ctx = AppContext db
+             in startApp settings (fromSecret (fromString myKey)) ctx
+        )
+      exitSuccess

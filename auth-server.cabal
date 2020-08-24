@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 090fb4debd3fb0c626efa2cca0548791a7f7354ce5699b32bc1865eef3c683b8
+-- hash: 6a17e6a86ff409a17d09776f0d231b3062a9f9c2342cc7ff35c0a6b03de2864c
 
 name:           auth-server
 version:        0.1.0.0
@@ -80,6 +80,7 @@ executable auth-server-exe
     , base
     , bytestring
     , containers
+    , dotenv
     , http-types
     , jose
     , mtl
