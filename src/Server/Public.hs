@@ -1,0 +1,39 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
+
+module Server.Public where
+
+import API.Public
+import API.Types
+import AppContext
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Reader
+import DB
+import Data.Acid
+import Data.Password.Bcrypt
+import Data.Text (Text)
+import Data.UUID.V4 (nextRandom)
+import Register
+import Servant hiding (BasicAuth)
+import Servant.Auth.Server
+import Servant.Client
+import User
+
+registerH :: Register -> ReaderHandler ()
+registerH r@(Register u e p) = do
+  liftIO . print $ "Register" <> show r
+  i <- liftIO nextRandom
+  p' <- liftIO $ hashPassword (mkPassword p)
+  let newUser = User i u e (unPasswordHash p')
+  (AppContext database) <- ask
+  eitherUser <- liftIO $ update database (RegisterUser newUser)
+  case eitherUser of
+    Left e -> throwError err500 {errBody = "Can't register"}
+    Right u -> return ()
+
+indexH :: ReaderHandler Text
+indexH = return "Index"
+
+publicServerT :: ServerT PublicAPI ReaderHandler
+publicServerT = registerH :<|> indexH

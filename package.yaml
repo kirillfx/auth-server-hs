@@ -20,6 +20,7 @@ description: Please see the README on GitHub at <https://github.com/githubuser/a
 
 dependencies:
   - base >= 4.7 && < 5
+  - bytestring
   - mtl
   - transformers
   - aeson
@@ -34,6 +35,8 @@ dependencies:
   - safecopy
   - acid-state
   - containers
+  - servant-auth-server
+  - jose
 
 library:
   source-dirs: src

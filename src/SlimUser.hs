@@ -8,6 +8,7 @@ import Data.Password.Bcrypt
 import Data.SafeCopy
 import Data.Text (Text)
 import Data.UUID
+import Servant.Auth.Server (FromJWT, ToJWT)
 import User (User)
 import qualified User
 
@@ -19,6 +20,10 @@ data SlimUser = SlimUser
 
 $(deriveJSON defaultOptions ''SlimUser)
 $(deriveSafeCopy 0 'base ''SlimUser)
+
+instance ToJWT SlimUser
+
+instance FromJWT SlimUser
 
 fromUser :: User -> SlimUser
 fromUser user = SlimUser (User.username user) (User.email user)
