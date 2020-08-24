@@ -17,19 +17,22 @@ import Data.Password.Bcrypt
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8)
+import Data.Time.Clock (getCurrentTime)
 import Data.UUID.V4 (nextRandom)
+import Logging
 import Login
 import Register
 import Servant hiding (BasicAuth)
 import Servant.Auth.Server
 import Servant.Client
 import SlimUser
+import System.Log.FastLogger
 import User
 
 -- Handlers
 usersH :: ReaderHandler [SlimUser]
 usersH = do
-  (AppContext database) <- ask
+  (AppContext database logger) <- ask
   us <- liftIO $ query database GetAllUsers
   return (fmap fromUser us)
 
@@ -57,12 +60,20 @@ protectedServerT cs jwts = loginH :<|> userDetailsH :<|> deleteUserH :<|> authH
 
     deleteUserH :: AuthResult User -> Text -> ReaderHandler ()
     deleteUserH (Authenticated user) email = do
-      liftIO $ print $ "Trying to delete " <> email
-      (AppContext database) <- ask
+      (AppContext database logset) <- ask
       eitherDelete <- liftIO $ update database (DeleteUser email)
       case eitherDelete of
         Left e -> throwError err500 {errBody = "Can't delete"}
-        Right u -> return ()
+        Right u -> do
+          tstamp <- liftIO $ getCurrentTime
+          let logMsg =
+                LogMessage
+                  { message = email <> " deleted",
+                    timestamp = tstamp,
+                    level = "info"
+                  }
+          liftIO $ pushLogStrLn logset $ toLogStr logMsg
+          return ()
     deleteUserH _ _ = throwError err401 {errBody = "Not authorized"}
 
     authH :: AuthResult User -> ReaderHandler NoContent

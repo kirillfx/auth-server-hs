@@ -16,14 +16,14 @@ import Server.Protected
 import Server.Public
 import User
 
-startApp :: Settings -> JWK -> AppContext -> IO ()
-startApp settings myKey ctx =
+startApp :: Middleware -> Settings -> JWK -> AppContext -> IO ()
+startApp loggingMiddleware settings myKey ctx =
   -- Servant context assembly
   let jwtCfg = defaultJWTSettings myKey
       cookieCfg = defaultCookieSettings
       authCfg = authCheck (database ctx) :: BasicAuthCfg
       cfg = cookieCfg :. jwtCfg :. authCfg :. EmptyContext
-   in runSettings settings (mkApplication cfg cookieCfg jwtCfg ctx) -- run
+   in runSettings settings $ loggingMiddleware $ (mkApplication cfg cookieCfg jwtCfg ctx) -- run
 
 -- Make Wai.Application from parts
 mkApplication ::

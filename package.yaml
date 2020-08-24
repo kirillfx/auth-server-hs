@@ -27,6 +27,8 @@ dependencies:
   - servant-server
   - servant-client
   - wai
+  - wai-extra
+  - fast-logger
   - warp
   - text
   - http-types
@@ -37,6 +39,7 @@ dependencies:
   - containers
   - servant-auth-server
   - jose
+  - time
 
 library:
   source-dirs: src
@@ -54,6 +57,9 @@ executables:
       - auth-server
       - unix
       - dotenv
+      - wai-extra
+      - fast-logger
+      - time
 
 tests:
   auth-server-test:
