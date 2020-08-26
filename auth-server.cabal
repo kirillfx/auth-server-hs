@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8e54b1b82d1585a38a164fb28ee91b13e62f9e9b17410d8d80002744c95b5dd2
+-- hash: 81f377cc939e139a020c878919fb3cba75aa5709e9420161f6ba45d3fc145dc3
 
 name:           auth-server
 version:        0.1.0.0
@@ -120,6 +120,7 @@ test-suite auth-server-test
     , base
     , bytestring
     , containers
+    , directory
     , dotenv
     , fast-logger
     , hspec

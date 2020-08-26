@@ -31,6 +31,7 @@ import Servant
 import Servant.Auth.Server
 import Servant.Client
 import Server.Protected
+import System.Directory (removeDirectoryRecursive)
 import System.Environment (lookupEnv)
 import System.Log.FastLogger
 import Test.Hspec
@@ -67,7 +68,7 @@ withUserApp action = do
   -- mSecret <- lookupEnv "SECRET"
 
   bracket
-    (openLocalStateFrom "db" (Database Map.empty))
+    (openLocalStateFrom "test_db" (Database Map.empty))
     closeAcidState
     ( \db ->
         do
@@ -85,31 +86,32 @@ withUserApp action = do
 
 spec :: Spec
 spec =
-  around withUserApp $
-    do
-      baseUrl <- runIO $ parseBaseUrl "http://localhost"
-      manager <- runIO $ newManager defaultManagerSettings
-      let basicAuthClient = client (Proxy :: Proxy BasicAuthProtectedAPI)
-          clientEnv port = mkClientEnv manager (baseUrl {baseUrlPort = port})
-          publicClient = client (Proxy :: Proxy PublicAPI)
+  afterAll_ (removeDirectoryRecursive "./test_db") $
+    around withUserApp $
+      do
+        baseUrl <- runIO $ parseBaseUrl "http://localhost"
+        manager <- runIO $ newManager defaultManagerSettings
+        let basicAuthClient = client (Proxy :: Proxy BasicAuthProtectedAPI)
+            clientEnv port = mkClientEnv manager (baseUrl {baseUrlPort = port})
+            publicClient = client (Proxy :: Proxy PublicAPI)
 
-      describe
-        "/register"
-        $ do
-          it "responds with 200" $ \port -> do
-            let r = Register "kirillfx" "kirillfx@gmail.com" "123"
-            res <- runClientM (postRegister r) (clientEnv port)
-            liftIO $ print res
-            isRight res `shouldBe` True
+        describe
+          "/register"
+          $ do
+            it "responds with 200" $ \port -> do
+              let r = Register "kirillfx" "kirillfx@gmail.com" "123"
+              res <- runClientM (postRegister r) (clientEnv port)
+              liftIO $ print res
+              isRight res `shouldBe` True
 
-      describe
-        "/login"
-        $ do
-          it "responds with 200" $ \port -> do
-            let l = BasicAuthData "kirillfx@gmail.com" "123"
-            res <- runClientM (postLogin l) (clientEnv port)
-            -- print res
-            isRight res `shouldBe` True
+        describe
+          "/login"
+          $ do
+            it "responds with 200" $ \port -> do
+              let l = BasicAuthData "kirillfx@gmail.com" "123"
+              res <- runClientM (postLogin l) (clientEnv port)
+              -- print res
+              isRight res `shouldBe` True
 
 -- describe
 --   "/delete"
