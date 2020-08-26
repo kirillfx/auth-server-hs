@@ -1,3 +1,4 @@
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -5,7 +6,11 @@
 
 module Main (main) where
 
+import API.Protected
+import API.Public
 import AppContext
+import Client
+import Configuration.Dotenv
 import Control.Exception
 import Control.Monad.IO.Class (liftIO)
 import DB
@@ -25,6 +30,9 @@ import Register
 import Servant
 import Servant.Auth.Server
 import Servant.Client
+import Server.Protected
+import System.Environment (lookupEnv)
+import System.Log.FastLogger
 import Test.Hspec
 import Test.Hspec.Wai
 import Test.Hspec.Wai.JSON
@@ -33,49 +41,57 @@ import User
 main :: IO ()
 main = hspec spec
 
-postJson path = request methodPost path headers
-  where
-    headers = [("Content-Type", "application/json")]
+-- postJson path = request methodPost path headers
+--   where
+--     headers = [("Content-Type", "application/json")]
 
-app' = do
-  bracket
-    (openLocalStateFrom "db" (Database Map.empty))
-    closeAcidState
-    ( \db ->
-        let myKey = fromSecret "asdvndipsvnjivnfisdpvndfvifnifpsvsid"
-         in return $ app myKey (AppContext db)
-    )
+-- app' = do
+--   bracket
+--     (openLocalStateFrom "db" (Database Map.empty))
+--     closeAcidState
+--     ( \db ->
+--         let myKey = fromSecret "asdvndipsvnjivnfisdpvndfvifnifpsvsid"
+--          in return $ app myKey (AppContext db)
+--     )
 
-appState = do
-  db <- openLocalStateFrom "db" (Database Map.empty)
-  return (db, app (AppContext db))
+-- appState = do
+--   db <- openLocalStateFrom "db" (Database Map.empty)
+--   return (db, app (AppContext db))
 
 withUserApp :: (Warp.Port -> IO ()) -> IO ()
-withUserApp action =
+withUserApp action = do
+  -- Read dotenv
+  -- void $ loadFile defaultConfig
+
+  -- Env lookups
+  -- mSecret <- lookupEnv "SECRET"
+
   bracket
     (openLocalStateFrom "db" (Database Map.empty))
     closeAcidState
     ( \db ->
-        let myKey = fromSecret "asdvndipsvnjivnfisdpvndfvifnifpsvsid"
-         in Warp.testWithApplication (pure $ app myKey (AppContext db)) action
+        do
+          appLogger <- newStdoutLoggerSet defaultBufSize
+          let myKey = fromSecret "asdvndipsvnjivnfisdpvndfvifnifpsvsid"
+              settings = mkSettings (print "Shutting down")
+              jwtCfg = defaultJWTSettings myKey
+              cookieCfg = defaultCookieSettings
+              authCfg = authCheck (database ctx) :: BasicAuthCfg
+              cfg = cookieCfg :. jwtCfg :. authCfg :. EmptyContext
+              ctx = AppContext db appLogger
+              app = mkApplication cfg cookieCfg jwtCfg ctx
+          Warp.testWithApplicationSettings settings (pure app) action
     )
 
 spec :: Spec
 spec =
   around withUserApp $
     do
-      let apiClient = client (Proxy :: Proxy API)
       baseUrl <- runIO $ parseBaseUrl "http://localhost"
       manager <- runIO $ newManager defaultManagerSettings
-      let clientEnv port = mkClientEnv manager (baseUrl {baseUrlPort = port})
-      describe
-        "/getUsers"
-        $ do
-          it "responds with 200" $ \port -> do
-            res <- runClientM getUsers (clientEnv port)
-            -- get "/users" `shouldRespondWith` 200
-            liftIO $ print res
-            isRight res `shouldBe` True
+      let basicAuthClient = client (Proxy :: Proxy BasicAuthProtectedAPI)
+          clientEnv port = mkClientEnv manager (baseUrl {baseUrlPort = port})
+          publicClient = client (Proxy :: Proxy PublicAPI)
 
       describe
         "/register"
@@ -90,15 +106,15 @@ spec =
         "/login"
         $ do
           it "responds with 200" $ \port -> do
-            let l = Login "kirillfx@gmail.com" "123"
+            let l = BasicAuthData "kirillfx@gmail.com" "123"
             res <- runClientM (postLogin l) (clientEnv port)
-            print res
+            -- print res
             isRight res `shouldBe` True
 
-      describe
-        "/delete"
-        $ do
-          it "responds with 200" $ \port -> do
-            res <- runClientM (postDelete "kirillfx@gmail.com") (clientEnv port)
-            print res
-            isRight res `shouldBe` True
+-- describe
+--   "/delete"
+--   $ do
+--     it "responds with 200" $ \port -> do
+--       res <- runClientM (postDelete "kirillfx@gmail.com") (clientEnv port)
+--       print res
+--       isRight res `shouldBe` True

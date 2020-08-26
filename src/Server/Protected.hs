@@ -37,9 +37,21 @@ usersH = do
   return (fmap fromUser us)
 
 basicAuthProtectedServer :: CookieSettings -> JWTSettings -> AuthResult User -> ServerT BasicAuthProtectedAPI ReaderHandler
-basicAuthProtectedServer cs jwts (Authenticated user) = undefined
+basicAuthProtectedServer cs jwts (Authenticated user) = loginH
   where
-    loginH = undefined
+    loginH :: ReaderHandler (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
+    loginH = do
+      let slimUser = fromUser user
+      mApplyCookies <- liftIO $ acceptLogin cs jwts user
+      case mApplyCookies of
+        Nothing -> throwError err401
+        Just applyCookies -> do
+          etoken <- liftIO $ makeJWT user jwts Nothing
+          case etoken of
+            Left e -> throwError err401 {errBody = "Can't make token"}
+            Right token -> do
+              liftIO $ print token
+              return $ applyCookies user
 basicAuthProtectedServer cs jwts _ = throwAll err401
 
 jwtProtectedServerT :: CookieSettings -> JWTSettings -> AuthResult User -> ServerT JWTProtectedAPI ReaderHandler

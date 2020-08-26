@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5f58f82791a34af4c5055bc4ef050ab9b980cc120c7911f043f13361c5c9f609
+-- hash: 8e54b1b82d1585a38a164fb28ee91b13e62f9e9b17410d8d80002744c95b5dd2
 
 name:           auth-server
 version:        0.1.0.0
@@ -64,6 +64,7 @@ library
     , text
     , time
     , transformers
+    , unix
     , uuid
     , wai
     , wai-extra
@@ -119,6 +120,7 @@ test-suite auth-server-test
     , base
     , bytestring
     , containers
+    , dotenv
     , fast-logger
     , hspec
     , hspec-wai
@@ -135,6 +137,7 @@ test-suite auth-server-test
     , text
     , time
     , transformers
+    , unix
     , uuid
     , wai
     , wai-extra

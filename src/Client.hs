@@ -5,6 +5,8 @@
 module Client where
 
 import API
+import API.Protected
+import API.Public
 import Data.Text
 import Login
 import Register
@@ -16,7 +18,12 @@ import User
 
 -- Servant Client
 -- getUsers :: ClientM [SlimUser]
--- postRegister :: Register -> ClientM User
 -- postLogin :: Login -> ClientM User
 -- postDelete :: Text -> ClientM ()
 -- (getUsers :<|> postRegister :<|> postLogin :<|> postDelete) = client api
+
+-- postRegister :: Register -> ClientM User
+-- getIndex :: ClientM Text
+(postRegister :<|> getIndex) = client publicApi
+
+postLogin = client basicAuthProtectedAPI
