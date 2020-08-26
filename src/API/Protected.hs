@@ -14,11 +14,20 @@ import SlimUser
 import User
 
 -- Protected API
-type ProtectedAPI =
-  "login" :> Auth '[BasicAuth] User :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
-    :<|> "userDetails" :> Auth '[JWT, Cookie] User :> Get '[JSON] User
-    :<|> "delete" :> Auth '[JWT, Cookie] User :> ReqBody '[JSON] Text :> Post '[JSON] ()
-    :<|> "auth" :> Auth '[JWT, Cookie] User :> Get '[JSON] NoContent
+-- type ProtectedAPI =
+--   "login" :> Auth '[BasicAuth] User :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
+--     :<|> "userDetails" :> Auth '[JWT, Cookie] User :> Get '[JSON] User
+--     :<|> "delete" :> Auth '[JWT, Cookie] User :> ReqBody '[JSON] Text :> Post '[JSON] ()
+--     :<|> "auth" :> Auth '[JWT, Cookie] User :> Get '[JSON] NoContent
 
-protectedApi :: Proxy ProtectedAPI
-protectedApi = Proxy
+type BasicAuthProtectedAPI = "login" :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
+
+type JWTProtectedAPI =
+  "userDetails" :> Get '[JSON] User
+    :<|> "delete" :> ReqBody '[JSON] Text :> Post '[JSON] ()
+    :<|> "auth" :> Get '[JSON] NoContent
+
+-- type ProtectedAPI = BasicAuthProtectedAPI :<|> JWTProtectedAPI
+
+-- protectedApi :: Proxy ProtectedAPI
+-- protectedApi = Proxy

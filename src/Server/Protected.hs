@@ -36,30 +36,20 @@ usersH = do
   us <- liftIO $ query database GetAllUsers
   return (fmap fromUser us)
 
-protectedServerT :: CookieSettings -> JWTSettings -> ServerT ProtectedAPI ReaderHandler
-protectedServerT cs jwts = loginH :<|> userDetailsH :<|> deleteUserH :<|> authH
+basicAuthProtectedServer :: CookieSettings -> JWTSettings -> AuthResult User -> ServerT BasicAuthProtectedAPI ReaderHandler
+basicAuthProtectedServer cs jwts (Authenticated user) = undefined
   where
-    loginH :: AuthResult User -> ReaderHandler (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
-    loginH (Authenticated user) = do
-      let slimUser = fromUser user
-      mApplyCookies <- liftIO $ acceptLogin cs jwts user
-      case mApplyCookies of
-        Nothing -> throwError err401
-        Just applyCookies -> do
-          etoken <- liftIO $ makeJWT user jwts Nothing
-          case etoken of
-            Left e -> throwError err401 {errBody = "Can't make token"}
-            Right token -> do
-              liftIO $ print token
-              return $ applyCookies user
-    loginH _ = throwError err401 {errBody = "Can't auth"}
+    loginH = undefined
+basicAuthProtectedServer cs jwts _ = throwAll err401
 
-    userDetailsH :: AuthResult User -> ReaderHandler User
-    userDetailsH (Authenticated user) = return user
-    userDetailsH _ = throwError err401 {errBody = "Can't auth"}
+jwtProtectedServerT :: CookieSettings -> JWTSettings -> AuthResult User -> ServerT JWTProtectedAPI ReaderHandler
+jwtProtectedServerT cs jwts (Authenticated user) = userDetailsH :<|> deleteUserH :<|> authH
+  where
+    userDetailsH :: ReaderHandler User
+    userDetailsH = return user
 
-    deleteUserH :: AuthResult User -> Text -> ReaderHandler ()
-    deleteUserH (Authenticated user) email = do
+    deleteUserH :: Text -> ReaderHandler ()
+    deleteUserH email = do
       (AppContext database logset) <- ask
       eitherDelete <- liftIO $ update database (DeleteUser email)
       case eitherDelete of
@@ -74,11 +64,12 @@ protectedServerT cs jwts = loginH :<|> userDetailsH :<|> deleteUserH :<|> authH
                   }
           liftIO $ pushLogStrLn logset $ toLogStr logMsg
           return ()
-    deleteUserH _ _ = throwError err401 {errBody = "Not authorized"}
 
-    authH :: AuthResult User -> ReaderHandler NoContent
-    authH (Authenticated user) = return NoContent
-    authH _ = throwError err401 {errBody = "Not authorized"}
+    authH :: ReaderHandler NoContent
+    authH = return NoContent
+jwtProtectedServerT cs jwts _ = throwAll err401
+
+protectedServerT cs jwts = basicAuthProtectedServer cs jwts :<|> jwtProtectedServerT cs jwts
 
 -- Basic auth check function for working with AcidState Database
 authCheck :: AcidState Database -> BasicAuthData -> IO (AuthResult User)
