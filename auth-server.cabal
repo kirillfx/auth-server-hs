@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 81f377cc939e139a020c878919fb3cba75aa5709e9420161f6ba45d3fc145dc3
+-- hash: 4280784496bd103a385a7f1673dc93f2b0d66c310320a5d664caacb914829c18
 
 name:           auth-server
 version:        0.1.0.0
@@ -132,6 +132,7 @@ test-suite auth-server-test
     , mtl
     , password
     , safecopy
+    , servant
     , servant-auth-server
     , servant-client
     , servant-server

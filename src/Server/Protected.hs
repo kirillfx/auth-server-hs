@@ -41,7 +41,7 @@ basicAuthProtectedServer cs jwts (Authenticated user) = loginH
   where
     loginH :: ReaderHandler (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
     loginH = do
-      let slimUser = fromUser user
+      -- let slimUser = fromUser user
       mApplyCookies <- liftIO $ acceptLogin cs jwts user
       case mApplyCookies of
         Nothing -> throwError err401

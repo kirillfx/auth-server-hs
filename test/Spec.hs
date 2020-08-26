@@ -12,6 +12,7 @@ import AppContext
 import Client
 import Configuration.Dotenv
 import Control.Exception
+import Control.Monad (forM_)
 import Control.Monad.IO.Class (liftIO)
 import DB
 import Data.Acid
@@ -21,13 +22,13 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import Data.UUID.V4 (nextRandom)
 import Lib
-import Login
 import Network.HTTP.Client hiding (Proxy)
 import Network.HTTP.Types (methodPost)
 import Network.HTTP.Types.Header (Header)
 import qualified Network.Wai.Handler.Warp as Warp
 import Register
 import Servant
+import Servant.API.ResponseHeaders
 import Servant.Auth.Server
 import Servant.Client
 import Server.Protected
@@ -76,7 +77,7 @@ withUserApp action = do
           let myKey = fromSecret "asdvndipsvnjivnfisdpvndfvifnifpsvsid"
               settings = mkSettings (print "Shutting down")
               jwtCfg = defaultJWTSettings myKey
-              cookieCfg = defaultCookieSettings
+              cookieCfg = defaultCookieSettings {cookieIsSecure = NotSecure}
               authCfg = authCheck (database ctx) :: BasicAuthCfg
               cfg = cookieCfg :. jwtCfg :. authCfg :. EmptyContext
               ctx = AppContext db appLogger
@@ -110,13 +111,30 @@ spec =
             it "responds with 200" $ \port -> do
               let l = BasicAuthData "kirillfx@gmail.com" "123"
               res <- runClientM (postLogin l) (clientEnv port)
-              -- print res
+              -- print $ getResponse res
               isRight res `shouldBe` True
 
--- describe
---   "/delete"
---   $ do
---     it "responds with 200" $ \port -> do
---       res <- runClientM (postDelete "kirillfx@gmail.com") (clientEnv port)
---       print res
---       isRight res `shouldBe` True
+        describe
+          "/delete"
+          $ do
+            it "responds with 200" $ \port -> do
+              let l = BasicAuthData "kirillfx@gmail.com" "123"
+              eLoginResponse <- runClientM (postLogin l) (clientEnv port)
+              case eLoginResponse of
+                Left e -> expectationFailure "login failed"
+                Right hs -> do
+                  let u = getResponse hs
+                      hs' = getHeaders hs
+                  print u
+                  print hs'
+                  (User.email u) `shouldBe` "kirillfx@gmail.com"
+
+-- case loginResponse of
+--   Left e -> expectationFailure "login failed"
+--   Right u -> do
+--     -- let token = lookupResponseHeader (loginResponse :: ResponseHeader "Set-Cookie" String)
+--     -- print token
+--     -- print (getHeaders loginResponse)
+--     -- res <- runClientM (postDelete "kirillfx@gmail.com") (clientEnv port)
+--     -- print res
+--     isRight u `shouldBe` True

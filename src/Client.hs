@@ -27,3 +27,8 @@ import User
 (postRegister :<|> getIndex) = client publicApi
 
 postLogin = client basicAuthProtectedAPI
+
+-- userDetails :: ClientM User
+-- delete :: Text -> ClientM ()
+-- auth :: ClientM NoContent
+(getUserDetails :<|> postDelete :<|> getAuth) = client jwtProtectedAPI

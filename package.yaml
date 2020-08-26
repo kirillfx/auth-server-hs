@@ -78,6 +78,7 @@ tests:
       - hspec-wai-json
       - aeson
       - warp
+      - servant
       - servant-client
       - http-client
       - dotenv

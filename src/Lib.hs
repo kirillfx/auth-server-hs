@@ -47,7 +47,7 @@ startApp :: Middleware -> Settings -> JWK -> AppContext -> IO ()
 startApp loggingMiddleware settings myKey ctx =
   -- Servant context assembly
   let jwtCfg = defaultJWTSettings myKey
-      cookieCfg = defaultCookieSettings
+      cookieCfg = defaultCookieSettings {cookieIsSecure = NotSecure}
       authCfg = authCheck (database ctx) :: BasicAuthCfg
       cfg = cookieCfg :. jwtCfg :. authCfg :. EmptyContext
    in runSettings settings $ loggingMiddleware $ (mkApplication cfg cookieCfg jwtCfg ctx) -- run
