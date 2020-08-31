@@ -27,33 +27,39 @@ import Register
 import Servant hiding (BasicAuth)
 import Servant.Auth.Server
 import Servant.Client
-import SlimUser
+import SlimUser (SlimUser)
+import qualified SlimUser
 import System.Log.FastLogger
 import User
 
-basicAuthProtectedServer :: CookieSettings -> JWTSettings -> AuthResult User -> ServerT BasicAuthProtectedAPI ReaderHandler
+basicAuthProtectedServer :: CookieSettings -> JWTSettings -> AuthResult SlimUser -> ServerT BasicAuthProtectedAPI ReaderHandler
 basicAuthProtectedServer cs jwts (Authenticated user) = loginH
   where
-    loginH :: ReaderHandler (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
+    loginH :: ReaderHandler (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] SlimUser)
     loginH = do
-      -- let slimUser = fromUser user
-      mApplyCookies <- liftIO $ acceptLogin cs jwts user
+      let slimUser = user
+      mApplyCookies <- liftIO $ acceptLogin cs jwts slimUser
       case mApplyCookies of
         Nothing -> throwError err401
         Just applyCookies -> do
-          etoken <- liftIO $ makeJWT user jwts Nothing
+          etoken <- liftIO $ makeJWT slimUser jwts Nothing
           case etoken of
             Left e -> throwError err401 {errBody = fromString . show $ e}
             Right token -> do
               liftIO $ print token
-              return $ applyCookies user
+              return $ applyCookies slimUser
 basicAuthProtectedServer cs jwts _ = throwAll err401
 
-jwtProtectedServerT :: CookieSettings -> JWTSettings -> AuthResult User -> ServerT JWTProtectedAPI ReaderHandler
+jwtProtectedServerT :: CookieSettings -> JWTSettings -> AuthResult SlimUser -> ServerT JWTProtectedAPI ReaderHandler
 jwtProtectedServerT cs jwts (Authenticated user) = userDetailsH :<|> deleteUserH :<|> authH
   where
     userDetailsH :: ReaderHandler User
-    userDetailsH = return user
+    userDetailsH = do
+      (AppContext database logset) <- ask
+      eitherUser <- liftIO $ query database (GetUserByEmail . SlimUser.email $ user)
+      case eitherUser of
+        Left e -> throwError err500 {errBody = fromString e}
+        Right u -> return u
 
     deleteUserH :: Text -> ReaderHandler ()
     deleteUserH email = do
@@ -79,11 +85,11 @@ jwtProtectedServerT cs jwts _ = throwAll err401
 protectedServerT cs jwts = basicAuthProtectedServer cs jwts :<|> jwtProtectedServerT cs jwts
 
 -- Basic auth check function for working with AcidState Database
-authCheck :: AcidState Database -> BasicAuthData -> IO (AuthResult User)
+authCheck :: AcidState Database -> BasicAuthData -> IO (AuthResult SlimUser)
 authCheck database (BasicAuthData ebs pbs) = do
   let e = decodeUtf8 ebs
       p = decodeUtf8 pbs
   eitherUser <- liftIO $ query database (GetUser e p)
   case eitherUser of
     Left e -> return Indefinite
-    Right u -> return (Authenticated u)
+    Right u -> return (Authenticated (SlimUser.fromUser u))

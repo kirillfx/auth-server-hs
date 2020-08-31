@@ -14,10 +14,10 @@ import Servant.Client
 import SlimUser
 import User
 
-type BasicAuthProtectedAPI = "login" :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] User)
+type BasicAuthProtectedAPI = "login" :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] SlimUser)
 
 -- Used for client
-basicAuthProtectedAPI :: Proxy (S.BasicAuth "enter point" User :> BasicAuthProtectedAPI)
+basicAuthProtectedAPI :: Proxy (S.BasicAuth "enter point" SlimUser :> BasicAuthProtectedAPI)
 basicAuthProtectedAPI = Proxy
 
 type JWTProtectedAPI =

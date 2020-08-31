@@ -59,6 +59,12 @@ getUser e p = do
       u = (safeHead . fmap snd . Map.toList . Map.filter (\u -> email u == e) $ m) >>= (check p)
   return u
 
+getUserByEmail :: Text -> Query Database (Either String User)
+getUserByEmail e = do
+  Database m <- ask
+  let u = safeHead . fmap snd . Map.toList . Map.filter (\u -> email u == e) $ m
+  return u
+
 deleteUser :: Text -> Update Database (Either String ())
 deleteUser e = do
   (Database m) <- get
@@ -68,4 +74,4 @@ deleteUser e = do
       put (Database (Map.delete (userId u) m))
       return $ Right ()
 
-$(makeAcidic ''Database ['registerUser, 'getUser, 'getAllUsers, 'deleteUser])
+$(makeAcidic ''Database ['registerUser, 'getUser, 'getUserByEmail, 'getAllUsers, 'deleteUser])

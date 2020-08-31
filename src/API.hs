@@ -14,12 +14,12 @@ import API.Public
 import API.Types
 import Servant hiding (BasicAuth)
 import Servant.Auth.Server
-import User
+import SlimUser
 
 type API =
   PublicAPI
-    :<|> (Auth '[BasicAuth] User :> BasicAuthProtectedAPI)
-    :<|> (Auth '[JWT, Cookie] User :> JWTProtectedAPI)
+    :<|> (Auth '[BasicAuth] SlimUser :> BasicAuthProtectedAPI)
+    :<|> (Auth '[JWT, Cookie] SlimUser :> JWTProtectedAPI)
 
 api :: Proxy API
 api = Proxy
