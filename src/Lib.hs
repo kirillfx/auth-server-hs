@@ -25,13 +25,16 @@ import System.Log.FastLogger
 import System.Posix.Signals (Handler (..), installHandler, sigINT, sigTERM)
 import User
 
+-- | Construct json logger
 jsonRequestLogger :: IO Middleware
 jsonRequestLogger =
   mkRequestLogger $ def {outputFormat = CustomOutputFormatWithDetails formatAsJSON}
 
+-- | Construct simple stdout logger
 stdOutLogger :: IO Middleware
 stdOutLogger = return logStdout
 
+-- | Make Wai Settings that handles app termination signals with provided shutdownAction
 mkSettings :: IO () -> Settings
 mkSettings shutdownAction =
   setPort 8080
@@ -43,6 +46,7 @@ mkSettings shutdownAction =
       installHandler sigTERM (Catch $ shutdownAction >> closeSocket) Nothing
       void $ installHandler sigINT (Catch $ shutdownAction >> closeSocket) Nothing
 
+-- run app
 startApp :: Middleware -> Settings -> JWK -> AppContext -> IO ()
 startApp loggingMiddleware settings myKey ctx =
   -- Servant context assembly

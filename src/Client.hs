@@ -16,19 +16,8 @@ import Servant.Client
 import SlimUser
 import User
 
--- Servant Client
--- getUsers :: ClientM [SlimUser]
--- postLogin :: Login -> ClientM User
--- postDelete :: Text -> ClientM ()
--- (getUsers :<|> postRegister :<|> postLogin :<|> postDelete) = client api
-
--- postRegister :: Register -> ClientM User
--- getIndex :: ClientM Text
 (postRegister :<|> getIndex) = client publicApi
 
 postLogin = client basicAuthProtectedAPI
 
--- userDetails :: ClientM User
--- delete :: Text -> ClientM ()
--- auth :: ClientM NoContent
 (getUserDetails :<|> postDelete :<|> getAuth) = client jwtProtectedAPI

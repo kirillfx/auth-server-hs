@@ -13,7 +13,9 @@ import DB
 import Data.Acid
 import Data.ByteString
 import qualified Data.ByteString as BS
+import Data.ByteString.Lazy as BL
 import Data.Password.Bcrypt
+import Data.String
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Text.Encoding (decodeUtf8)
@@ -29,13 +31,6 @@ import SlimUser
 import System.Log.FastLogger
 import User
 
--- Handlers
-usersH :: ReaderHandler [SlimUser]
-usersH = do
-  (AppContext database logger) <- ask
-  us <- liftIO $ query database GetAllUsers
-  return (fmap fromUser us)
-
 basicAuthProtectedServer :: CookieSettings -> JWTSettings -> AuthResult User -> ServerT BasicAuthProtectedAPI ReaderHandler
 basicAuthProtectedServer cs jwts (Authenticated user) = loginH
   where
@@ -48,7 +43,7 @@ basicAuthProtectedServer cs jwts (Authenticated user) = loginH
         Just applyCookies -> do
           etoken <- liftIO $ makeJWT user jwts Nothing
           case etoken of
-            Left e -> throwError err401 {errBody = "Can't make token"}
+            Left e -> throwError err401 {errBody = fromString . show $ e}
             Right token -> do
               liftIO $ print token
               return $ applyCookies user
@@ -65,7 +60,7 @@ jwtProtectedServerT cs jwts (Authenticated user) = userDetailsH :<|> deleteUserH
       (AppContext database logset) <- ask
       eitherDelete <- liftIO $ update database (DeleteUser email)
       case eitherDelete of
-        Left e -> throwError err500 {errBody = "Can't delete"}
+        Left e -> throwError err500 {errBody = fromString e}
         Right u -> do
           tstamp <- liftIO $ getCurrentTime
           let logMsg =
