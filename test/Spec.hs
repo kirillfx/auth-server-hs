@@ -32,6 +32,7 @@ import Servant.API.ResponseHeaders
 import Servant.Auth.Server
 import Servant.Client
 import Server.Protected
+import qualified SlimUser
 import System.Directory (removeDirectoryRecursive)
 import System.Environment (lookupEnv)
 import System.Log.FastLogger
@@ -127,7 +128,7 @@ spec =
                       hs' = getHeaders hs
                   print u
                   print hs'
-                  (User.email u) `shouldBe` "kirillfx@gmail.com"
+                  (SlimUser.email u) `shouldBe` "kirillfx@gmail.com"
 
 -- case loginResponse of
 --   Left e -> expectationFailure "login failed"

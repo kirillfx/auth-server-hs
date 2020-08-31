@@ -28,7 +28,7 @@ instance ToJWT User
 
 instance FromJWT User
 
-type instance BasicAuthCfg = BasicAuthData -> IO (AuthResult User)
+-- type instance BasicAuthCfg = BasicAuthData -> IO (AuthResult User)
 
-instance FromBasicAuthData User where
-  fromBasicAuthData authData authCheckFunction = authCheckFunction authData
+-- instance FromBasicAuthData User where
+--   fromBasicAuthData authData authCheckFunction = authCheckFunction authData

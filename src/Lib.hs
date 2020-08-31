@@ -46,7 +46,7 @@ mkSettings shutdownAction =
       installHandler sigTERM (Catch $ shutdownAction >> closeSocket) Nothing
       void $ installHandler sigINT (Catch $ shutdownAction >> closeSocket) Nothing
 
--- run app
+-- run
 startApp :: Middleware -> Settings -> JWK -> AppContext -> IO ()
 startApp loggingMiddleware settings myKey ctx =
   -- Servant context assembly
