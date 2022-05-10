@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 236413c0d3c1a746628663f11bd9bb3e73a96a726107dc2bf669cdaaced4c1da
+-- hash: 3f310b7e84bcbff97fdc2e1f284a1a6c849afdf2d30d9dbdd9c47635008f7060
 
 name:           auth-server
 version:        0.1.0.0
@@ -41,6 +41,7 @@ library
       Server.Protected
       Server.Public
       SlimUser
+      Types
       User
   other-modules:
       Paths_auth_server
@@ -84,8 +85,10 @@ library
     , bytestring
     , containers
     , fast-logger
+    , generic-lens
     , http-types
     , jose
+    , lens
     , mtl
     , password
     , relude
@@ -150,8 +153,10 @@ executable auth-server-exe
     , containers
     , dotenv
     , fast-logger
+    , generic-lens
     , http-types
     , jose
+    , lens
     , mtl
     , password
     , relude
@@ -218,12 +223,14 @@ test-suite auth-server-test
     , directory
     , dotenv
     , fast-logger
+    , generic-lens
     , hspec
     , hspec-wai
     , hspec-wai-json
     , http-client
     , http-types
     , jose
+    , lens
     , mtl
     , password
     , relude

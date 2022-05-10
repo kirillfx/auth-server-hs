@@ -54,7 +54,7 @@ jwtProtectedServerT cs jwts (Authenticated user) = userDetailsH :<|> deleteUserH
       (AppContext database logset) <- ask
       eitherUser <- liftIO $ query database (GetUserByEmail . SlimUser.email $ user)
       case eitherUser of
-        Left e  -> throwError err500 {errBody = fromString e}
+        Left e  -> throwError err500 {errBody = encodeUtf8 e}
         Right u -> return u
 
     deleteUserH :: Text -> ReaderHandler ()
@@ -62,7 +62,7 @@ jwtProtectedServerT cs jwts (Authenticated user) = userDetailsH :<|> deleteUserH
       (AppContext database logset) <- ask
       eitherDelete <- liftIO $ update database (DeleteUser email)
       case eitherDelete of
-        Left e -> throwError err500 {errBody = fromString e}
+        Left e -> throwError err500 {errBody = encodeUtf8 e}
         Right u -> do
           tstamp <- liftIO getCurrentTime
           let logMsg =

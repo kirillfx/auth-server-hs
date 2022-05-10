@@ -42,6 +42,9 @@ dependencies:
   - jose
   - time
   - unix
+  # lenses
+  - lens
+  - generic-lens
 
 library:
   source-dirs: src
