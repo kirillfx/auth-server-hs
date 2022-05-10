@@ -42,6 +42,7 @@ dependencies:
   - jose
   - time
   - unix
+  - optparse-applicative 
   # lenses
   - lens
   - generic-lens

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3f310b7e84bcbff97fdc2e1f284a1a6c849afdf2d30d9dbdd9c47635008f7060
+-- hash: ffbb86494de1fb9f78c6f298ce7ef61b0bd2d1b795e9e533dea06f3aaab69ffd
 
 name:           auth-server
 version:        0.1.0.0
@@ -32,6 +32,8 @@ library
       API.Types
       AppContext
       Client
+      CliOptions
+      Cryptography
       DB
       Lib
       Logging
@@ -90,6 +92,7 @@ library
     , jose
     , lens
     , mtl
+    , optparse-applicative
     , password
     , relude
     , safecopy
@@ -158,6 +161,7 @@ executable auth-server-exe
     , jose
     , lens
     , mtl
+    , optparse-applicative
     , password
     , relude
     , safecopy
@@ -232,6 +236,7 @@ test-suite auth-server-test
     , jose
     , lens
     , mtl
+    , optparse-applicative
     , password
     , relude
     , safecopy
