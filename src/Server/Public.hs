@@ -1,27 +1,24 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators #-}
-
 module Server.Public where
 
-import API.Public
-import API.Types
-import AppContext
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Reader
-import DB
-import Data.Acid
-import Data.Password.Bcrypt
-import Data.Text (Text)
-import Data.Time.Clock (getCurrentTime)
-import Data.UUID.V4 (nextRandom)
-import Logging
-import Register
-import Servant hiding (BasicAuth)
-import Servant.Auth.Server
-import Servant.Client
-import System.Log.FastLogger
-import User
+import           API.Public
+import           API.Types
+import           AppContext
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Reader
+import           DB
+import           Data.Acid
+import           Data.Password.Bcrypt
+import           Data.Text              (Text)
+import           Data.Time.Clock        (getCurrentTime)
+import           Data.UUID.V4           (nextRandom)
+import           Logging
+import           Register
+import           Relude
+import           Servant                hiding (BasicAuth)
+import           Servant.Auth.Server
+import           Servant.Client
+import           System.Log.FastLogger
+import           User
 
 -- User registration handler
 registerH :: Register -> ReaderHandler ()

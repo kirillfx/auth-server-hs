@@ -1,7 +1,3 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators #-}
-
 module API
   ( API,
     api,
@@ -9,12 +5,13 @@ module API
   )
 where
 
-import API.Protected
-import API.Public
-import API.Types
-import Servant hiding (BasicAuth)
-import Servant.Auth.Server
-import SlimUser
+import           API.Protected
+import           API.Public
+import           API.Types
+import           Relude
+import           Servant             hiding (BasicAuth)
+import           Servant.Auth.Server
+import           SlimUser
 
 type API =
   PublicAPI

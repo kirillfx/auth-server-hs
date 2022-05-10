@@ -20,6 +20,7 @@ description: Please see the README on GitHub at <https://github.com/githubuser/a
 
 dependencies:
   - base >= 4.7 && < 5
+  - relude
   - bytestring
   - mtl
   - transformers
@@ -83,3 +84,35 @@ tests:
       - http-client
       - dotenv
       - directory
+
+default-extensions:
+- ApplicativeDo
+- BangPatterns
+- BinaryLiterals
+- DeriveFoldable
+- DeriveFunctor
+- DeriveGeneric
+- DeriveTraversable
+- OverloadedStrings
+- DerivingStrategies
+- DeriveAnyClass
+- GeneralizedNewtypeDeriving
+- TypeOperators
+- DataKinds
+- TypeApplications
+- MultiParamTypeClasses
+- RecordWildCards
+- KindSignatures
+- TypeFamilies
+- LambdaCase
+- ScopedTypeVariables
+- DerivingVia
+- BlockArguments
+- NoImplicitPrelude
+- DuplicateRecordFields
+- NamedFieldPuns
+- TemplateHaskell
+- PartialTypeSignatures
+- ScopedTypeVariables
+- OverloadedLabels
+- FlexibleContexts

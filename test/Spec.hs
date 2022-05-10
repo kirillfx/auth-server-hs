@@ -1,45 +1,42 @@
-{-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE KindSignatures #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+
 
 module Main (main) where
 
-import API.Protected
-import API.Public
-import AppContext
-import Client
-import Configuration.Dotenv
-import Control.Exception
-import Control.Monad (forM_)
-import Control.Monad.IO.Class (liftIO)
-import DB
-import Data.Acid
-import Data.Aeson
-import Data.Either (isRight)
-import qualified Data.Map as Map
-import qualified Data.Text as T
-import Data.UUID.V4 (nextRandom)
-import Lib
-import Network.HTTP.Client hiding (Proxy)
-import Network.HTTP.Types (methodPost)
-import Network.HTTP.Types.Header (Header)
-import qualified Network.Wai.Handler.Warp as Warp
-import Register
-import Servant
-import Servant.API.ResponseHeaders
-import Servant.Auth.Server
-import Servant.Client
-import Server.Protected
+import           API.Protected
+import           API.Public
+import           AppContext
+import           Client
+import           Configuration.Dotenv
+import           Control.Exception
+import           Control.Monad               (forM_)
+import           Control.Monad.IO.Class      (liftIO)
+import           DB
+import           Data.Acid
+import           Data.Aeson
+import           Data.Either                 (isRight)
+import qualified Data.Map                    as Map
+import qualified Data.Text                   as T
+import           Data.UUID.V4                (nextRandom)
+import           Lib
+import           Network.HTTP.Client         hiding (Proxy)
+import           Network.HTTP.Types          (methodPost)
+import           Network.HTTP.Types.Header   (Header)
+import qualified Network.Wai.Handler.Warp    as Warp
+import           Register
+import           Relude
+import           Servant
+import           Servant.API.ResponseHeaders
+import           Servant.Auth.Server
+import           Servant.Client
+import           Server.Protected
 import qualified SlimUser
-import System.Directory (removeDirectoryRecursive)
-import System.Environment (lookupEnv)
-import System.Log.FastLogger
-import Test.Hspec
-import Test.Hspec.Wai
-import Test.Hspec.Wai.JSON
-import User
+import           System.Directory            (removeDirectoryRecursive)
+import           System.Environment          (lookupEnv)
+import           System.Log.FastLogger
+import           Test.Hspec
+import           Test.Hspec.Wai
+import           Test.Hspec.Wai.JSON
+import           User
 
 main :: IO ()
 main = hspec spec

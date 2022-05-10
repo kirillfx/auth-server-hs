@@ -1,18 +1,15 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators #-}
-
 module API.Protected where
 
-import API.Types
-import Data.ByteString
-import Data.Text (Text)
-import Servant hiding (BasicAuth)
-import qualified Servant as S
-import Servant.Auth.Server
-import Servant.Client
-import SlimUser
-import User
+import           API.Types
+import           Data.ByteString
+import           Data.Text           (Text)
+import           Relude
+import           Servant             hiding (BasicAuth)
+import qualified Servant             as S
+import           Servant.Auth.Server
+import           Servant.Client
+import           SlimUser
+import           User
 
 type BasicAuthProtectedAPI = "login" :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] SlimUser)
 

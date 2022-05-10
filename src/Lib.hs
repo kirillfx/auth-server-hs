@@ -1,29 +1,32 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators #-}
-
 module Lib where
 
-import API
-import AppContext
-import Control.Monad (void)
-import Control.Monad.Reader
-import Crypto.JOSE.JWK (JWK)
-import Network.Wai
-import Network.Wai.Handler.Warp
-import Network.Wai.Handler.Warp (Settings, defaultSettings, setGracefulShutdownTimeout, setInstallShutdownHandler, setPort)
-import Network.Wai.Middleware.RequestLogger
-import Network.Wai.Middleware.RequestLogger.JSON
-import Register
-import Servant
-import Servant.Auth.Server
-import Server (serverT)
-import Server.Protected
-import Server.Public
-import SlimUser
-import System.Log.FastLogger
-import System.Posix.Signals (Handler (..), installHandler, sigINT, sigTERM)
-import User
+import           API
+import           AppContext
+import           Control.Monad                             (void)
+import           Control.Monad.Reader
+import           Crypto.JOSE.JWK                           (JWK)
+import           Network.Wai
+import           Network.Wai.Handler.Warp
+import           Network.Wai.Handler.Warp                  (Settings,
+                                                            defaultSettings,
+                                                            setGracefulShutdownTimeout,
+                                                            setInstallShutdownHandler,
+                                                            setPort)
+import           Network.Wai.Middleware.RequestLogger
+import           Network.Wai.Middleware.RequestLogger.JSON
+import           Register
+import           Relude
+import           Servant
+import           Servant.Auth.Server
+import           Server                                    (serverT)
+import           Server.Protected
+import           Server.Public
+import           SlimUser
+import           System.Log.FastLogger
+import           System.Posix.Signals                      (Handler (..),
+                                                            installHandler,
+                                                            sigINT, sigTERM)
+import           User
 
 -- | Construct json logger
 jsonRequestLogger :: IO Middleware
@@ -54,7 +57,7 @@ startApp loggingMiddleware settings myKey ctx =
       cookieCfg = defaultCookieSettings {cookieIsSecure = NotSecure}
       authCfg = authCheck (database ctx) :: BasicAuthCfg
       cfg = cookieCfg :. jwtCfg :. authCfg :. EmptyContext
-   in runSettings settings $ loggingMiddleware $ (mkApplication cfg cookieCfg jwtCfg ctx) -- run
+   in runSettings settings $ loggingMiddleware $ mkApplication cfg cookieCfg jwtCfg ctx -- run
 
 -- Make Wai.Application from parts
 mkApplication ::
@@ -81,6 +84,7 @@ mkServer ::
   AppContext ->
   Server API
 mkServer cfg cs jwts ctx =
-  let nt x = runReaderT x ctx
+  let nt :: ReaderHandler a -> Servant.Handler a
+      nt x = runReaderT x ctx
       cfg' = Proxy :: Proxy '[CookieSettings, JWTSettings, BasicAuthCfg]
    in hoistServerWithContext api cfg' nt (serverT cs jwts)

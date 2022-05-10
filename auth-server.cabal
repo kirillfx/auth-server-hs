@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.6.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4280784496bd103a385a7f1673dc93f2b0d66c310320a5d664caacb914829c18
+-- hash: 236413c0d3c1a746628663f11bd9bb3e73a96a726107dc2bf669cdaaced4c1da
 
 name:           auth-server
 version:        0.1.0.0
@@ -46,6 +46,37 @@ library
       Paths_auth_server
   hs-source-dirs:
       src
+  default-extensions:
+      ApplicativeDo
+      BangPatterns
+      BinaryLiterals
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      OverloadedStrings
+      DerivingStrategies
+      DeriveAnyClass
+      GeneralizedNewtypeDeriving
+      TypeOperators
+      DataKinds
+      TypeApplications
+      MultiParamTypeClasses
+      RecordWildCards
+      KindSignatures
+      TypeFamilies
+      LambdaCase
+      ScopedTypeVariables
+      DerivingVia
+      BlockArguments
+      NoImplicitPrelude
+      DuplicateRecordFields
+      NamedFieldPuns
+      TemplateHaskell
+      PartialTypeSignatures
+      ScopedTypeVariables
+      OverloadedLabels
+      FlexibleContexts
   build-depends:
       acid-state
     , aeson
@@ -57,6 +88,7 @@ library
     , jose
     , mtl
     , password
+    , relude
     , safecopy
     , servant-auth-server
     , servant-client
@@ -77,6 +109,37 @@ executable auth-server-exe
       Paths_auth_server
   hs-source-dirs:
       app
+  default-extensions:
+      ApplicativeDo
+      BangPatterns
+      BinaryLiterals
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      OverloadedStrings
+      DerivingStrategies
+      DeriveAnyClass
+      GeneralizedNewtypeDeriving
+      TypeOperators
+      DataKinds
+      TypeApplications
+      MultiParamTypeClasses
+      RecordWildCards
+      KindSignatures
+      TypeFamilies
+      LambdaCase
+      ScopedTypeVariables
+      DerivingVia
+      BlockArguments
+      NoImplicitPrelude
+      DuplicateRecordFields
+      NamedFieldPuns
+      TemplateHaskell
+      PartialTypeSignatures
+      ScopedTypeVariables
+      OverloadedLabels
+      FlexibleContexts
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       acid-state
@@ -91,6 +154,7 @@ executable auth-server-exe
     , jose
     , mtl
     , password
+    , relude
     , safecopy
     , servant-auth-server
     , servant-client
@@ -112,6 +176,37 @@ test-suite auth-server-test
       Paths_auth_server
   hs-source-dirs:
       test
+  default-extensions:
+      ApplicativeDo
+      BangPatterns
+      BinaryLiterals
+      DeriveFoldable
+      DeriveFunctor
+      DeriveGeneric
+      DeriveTraversable
+      OverloadedStrings
+      DerivingStrategies
+      DeriveAnyClass
+      GeneralizedNewtypeDeriving
+      TypeOperators
+      DataKinds
+      TypeApplications
+      MultiParamTypeClasses
+      RecordWildCards
+      KindSignatures
+      TypeFamilies
+      LambdaCase
+      ScopedTypeVariables
+      DerivingVia
+      BlockArguments
+      NoImplicitPrelude
+      DuplicateRecordFields
+      NamedFieldPuns
+      TemplateHaskell
+      PartialTypeSignatures
+      ScopedTypeVariables
+      OverloadedLabels
+      FlexibleContexts
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       acid-state
@@ -131,6 +226,7 @@ test-suite auth-server-test
     , jose
     , mtl
     , password
+    , relude
     , safecopy
     , servant
     , servant-auth-server

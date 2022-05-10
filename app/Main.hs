@@ -1,24 +1,22 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Main where
 
-import AppContext
-import Configuration.Dotenv
-import Control.Exception (bracket)
-import Control.Monad (void)
-import DB
-import Data.Acid
-import Data.String (fromString)
-import Data.Time.Clock (getCurrentTime)
-import Lib
-import Logging
-import Network.Wai (Middleware)
-import Network.Wai.Handler.Warp as Warp
-import Servant.Auth.Server
-import Server
-import System.Environment (lookupEnv)
-import System.Exit (exitFailure, exitSuccess)
-import System.Log.FastLogger
+import           AppContext
+import           Configuration.Dotenv
+import           Control.Exception        (bracket)
+import           Control.Monad            (void)
+import           DB
+import           Data.Acid
+import           Data.String              (fromString)
+import           Data.Time.Clock          (getCurrentTime)
+import           Lib
+import           Logging
+import           Network.Wai              (Middleware)
+import           Network.Wai.Handler.Warp as Warp
+import           Relude
+import           Servant.Auth.Server
+import           Server
+import           System.Environment       (lookupEnv)
+import           System.Log.FastLogger
 
 main :: IO ()
 main = do

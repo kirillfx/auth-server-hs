@@ -1,26 +1,26 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
 
 module DB where
 
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Reader (ask)
-import Control.Monad.State (get, put)
-import Data.Acid
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Password.Bcrypt
-import Data.SafeCopy
-import Data.Text (Text)
-import Data.Typeable
-import Data.UUID
-import Data.UUID.V4 (nextRandom)
-import Register (Register)
+import           Control.Monad.IO.Class (liftIO)
+import           Control.Monad.Reader   (ask)
+import           Control.Monad.State    (get, put)
+import           Data.Acid
+import           Data.Map               (Map)
+import qualified Data.Map               as Map
+import           Data.Password.Bcrypt
+import           Data.SafeCopy
+import           Data.Text              (Text)
+import           Data.Typeable
+import           Data.UUID
+import           Data.UUID.V4           (nextRandom)
+import           Register               (Register)
 import qualified Register
-import User
+import           Relude
+import           User
 
-data Database = Database (Map UUID User)
-  deriving (Typeable)
+newtype Database = Database (Map UUID User)
+  deriving stock Typeable
 
 $(deriveSafeCopy 0 'base ''Database)
 
@@ -41,7 +41,7 @@ check p u =
   let ph = PasswordHash . passwordHash $ u :: PasswordHash Bcrypt
    in case checkPassword (mkPassword p) ph of
         PasswordCheckSuccess -> Right u
-        PasswordCheckFail -> Left "Wrong password"
+        PasswordCheckFail    -> Left "Wrong password"
 
 getAllUsers :: Query Database [User]
 getAllUsers = do
@@ -49,7 +49,7 @@ getAllUsers = do
   return . fmap snd . Map.toList $ m
 
 safeHead :: [b] -> Either String b
-safeHead [] = Left "Not found"
+safeHead []      = Left "Not found"
 safeHead (x : _) = Right x
 
 getUser :: Text -> Text -> Query Database (Either String User)

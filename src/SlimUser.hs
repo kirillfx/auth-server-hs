@@ -1,23 +1,23 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
 
 module SlimUser where
 
-import Data.Aeson
-import Data.Aeson.TH
-import Data.Password.Bcrypt
-import Data.SafeCopy
-import Data.Text (Text)
-import Data.UUID
-import Servant.Auth.Server
-import User (User)
+import           Data.Aeson
+import           Data.Aeson.TH
+import           Data.Password.Bcrypt
+import           Data.SafeCopy
+import           Data.Text            (Text)
+import           Data.UUID
+import           Relude
+import           Servant.Auth.Server
+import           User                 (User)
 import qualified User
 
 data SlimUser = SlimUser
   { username :: Text,
-    email :: Text
+    email    :: Text
   }
-  deriving (Eq, Show)
+  deriving stock (Generic, Eq, Show)
 
 $(deriveJSON defaultOptions ''SlimUser)
 $(deriveSafeCopy 0 'base ''SlimUser)
