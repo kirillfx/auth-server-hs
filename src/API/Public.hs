@@ -1,7 +1,5 @@
 module API.Public where
 
-import           API.Types
-import           Data.Text           (Text)
 import           Login
 import           Register
 import           Relude

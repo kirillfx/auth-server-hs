@@ -1,60 +1,36 @@
 module Main where
 
-import           AppContext
-import           Configuration.Dotenv
-import           Control.Exception        (bracket)
-import           Control.Monad            (void)
-import           DB
-import           Data.Acid
-import           Data.String              (fromString)
-import           Data.Time.Clock          (getCurrentTime)
-import           Lib
-import           Logging
-import           Network.Wai              (Middleware)
-import           Network.Wai.Handler.Warp as Warp
+import           CliOptions
+import           Control.Monad.IO.Class
+import           Cryptography
+import           Data.Default           (def)
+import qualified Data.Yaml              as YAML
 import           Relude
-import           Servant.Auth.Server
-import           Server
-import           System.Environment       (lookupEnv)
-import           System.Log.FastLogger
+import           Servant.Auth.Server    (defaultJWTSettings, makeJWT)
+import qualified Server
+import           AuthToken
+import Config
+import Application (run)
+import qualified Data.UUID as UUID
 
 main :: IO ()
-main = do
-  -- Read dotenv
-  void $ loadFile defaultConfig
+main =
+  parseOptions >>= \case
+    GenerateToken (path, userIdText) -> do
+      jwts <- defaultJWTSettings <$> readJWK path
 
-  -- Env lookups
-  mSecret <- lookupEnv "SECRET"
-
-  case mSecret of
-    -- Exit with failure
-    Nothing -> exitFailure
-    -- Launch server
-    Just myKey -> do
-      -- Loggers setup
-      warpLogger <- jsonRequestLogger
-      appLogger <- newStdoutLoggerSet defaultBufSize
-
-      -- Startup log event
-      tstamp <- getCurrentTime
-      let lgmsg =
-            LogMessage
-              { message = "Auth server starting!",
-                timestamp = tstamp,
-                level = "info"
-              }
-      pushLogStrLn appLogger (toLogStr lgmsg) >> flushLogStr appLogger
-
-      let shutdownAction = print "Shutting down"
-          settings = mkSettings shutdownAction
-
-      bracket
-        (openLocalStateFrom "db" (Database mempty))
-        (\db -> closeAcidState db >> print "Acid State closed")
-        ( \db ->
-            -- Constructing AppContext
-            let ctx = AppContext db appLogger
-             in -- Starting Server
-                startApp warpLogger settings (fromSecret (fromString myKey)) ctx
-        )
-      exitSuccess
+      userId <- do
+        case UUID.fromText userIdText of
+          Nothing -> putStrLn "Can't decode UserId" >> exitFailure
+          Just userId -> pure userId
+          
+      let token :: AuthToken
+          token = AuthToken userId
+      
+      et <- makeJWT token jwts Nothing
+      case et of
+        Left e  -> print e >> exitFailure
+        Right t -> print t >> exitSuccess
+    GenerateJWK path -> generateKeyPairIO path
+    RunService path ->
+      YAML.decodeFileThrow @_ @Config path >>= run

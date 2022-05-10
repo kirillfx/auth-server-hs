@@ -10,7 +10,7 @@ import           Relude
 import           Servant
 import           Servant.Auth.Server
 import           Servant.Client
-import           SlimUser
+import           AuthToken
 import           User
 
 (postRegister :<|> getIndex) = client publicApi

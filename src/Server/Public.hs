@@ -1,8 +1,7 @@
 module Server.Public where
 
 import           API.Public
-import           API.Types
-import           AppContext
+import           Env
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Reader
 import           DB
@@ -19,18 +18,19 @@ import           Servant.Auth.Server
 import           Servant.Client
 import           System.Log.FastLogger
 import           User
+import App
 
 -- User registration handler
-registerH :: Register -> ReaderHandler ()
+registerH :: Register -> App ()
 registerH r@(Register e p) = do
   liftIO . print $ "Register" <> show r
   i <- liftIO nextRandom
   p' <- liftIO $ hashPassword (mkPassword p)
   let newUser = User i e (unPasswordHash p')
-  (AppContext database logset) <- ask
+  Env{..} <- ask
   eitherUser <- liftIO $ update database (RegisterUser newUser)
   case eitherUser of
-    Left e -> throwError err500 {errBody = "Can't register"}
+    Left e -> throwError $ UnexpectedError "Can't register"
     Right u -> do
       tstamp <- liftIO getCurrentTime
       let logMsg =
@@ -39,11 +39,11 @@ registerH r@(Register e p) = do
                 timestamp = tstamp,
                 level = "info"
               }
-      liftIO $ pushLogStrLn logset $ toLogStr logMsg
+      liftIO $ pushLogStrLn getLogger $ toLogStr logMsg
       return ()
 
-indexH :: ReaderHandler Text
+indexH :: App Text
 indexH = return "Index"
 
-publicServerT :: ServerT PublicAPI ReaderHandler
+publicServerT :: ServerT PublicAPI App
 publicServerT = registerH :<|> indexH

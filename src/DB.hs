@@ -21,6 +21,7 @@ import qualified Register
 import           Relude
 import           Types                  (Email)
 import           User
+import Data.Data (Data)
 
 newtype Database = Database
   { users :: Map UUID User
@@ -41,7 +42,13 @@ getUserByEmailM email = do
     Just foundUser -> return . Right $ foundUser
 
 
--- API
+getUserByUserIdM :: MonadReader Database m => UUID -> m (Either Text User)
+getUserByUserIdM userId = do
+  mbFoundUser <- asks (^. #users . at userId)
+  case mbFoundUser of
+    Nothing        -> return . Left $ "User not found with such Email:" <> show userId
+    Just foundUser -> return . Right $ foundUser
+
 
 registerUser :: User -> Update Database (Either Text User)
 registerUser user = do
@@ -81,14 +88,18 @@ getUserByEmail :: Email -> Query Database (Either Text User)
 getUserByEmail = getUserByEmailM
 
 
-deleteUser :: Email -> Update Database (Either Text ())
-deleteUser email = do
+getUserByUserId :: UUID -> Query Database (Either Text User)
+getUserByUserId = getUserByUserIdM
+
+
+deleteUser :: UUID -> Update Database (Either Text ())
+deleteUser userId = do
   (Database m) <- get
-  eitherFoundUser <- gets (getUserByEmailM email)
+  eitherFoundUser <- gets (getUserByUserIdM userId)
   case eitherFoundUser of
     Left e -> return . Left $ e
     Right foundUser -> do
       #users . at (foundUser ^. #uId) .= Nothing
       return $ Right ()
 
-$(makeAcidic ''Database ['registerUser, 'getUser, 'getUserByEmail, 'getAllUsers, 'deleteUser])
+$(makeAcidic ''Database ['registerUser, 'getUser, 'getUserByUserId, 'getUserByEmail, 'getAllUsers, 'deleteUser])

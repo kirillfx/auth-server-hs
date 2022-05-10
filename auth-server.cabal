@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ffbb86494de1fb9f78c6f298ce7ef61b0bd2d1b795e9e533dea06f3aaab69ffd
+-- hash: c6110caac57bc5e7605eb444103c939c5072120372c15aab183119d4fd7068da
 
 name:           auth-server
 version:        0.1.0.0
@@ -29,20 +29,22 @@ library
       API
       API.Protected
       API.Public
-      API.Types
-      AppContext
+      App
+      Application
+      AuthToken
       Client
       CliOptions
+      Config
       Cryptography
       DB
-      Lib
+      Env
+      Json
       Logging
       Login
       Register
       Server
       Server.Protected
       Server.Public
-      SlimUser
       Types
       User
   other-modules:
@@ -86,6 +88,8 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , data-default
+    , exceptions
     , fast-logger
     , generic-lens
     , http-types
@@ -107,6 +111,7 @@ library
     , wai
     , wai-extra
     , warp
+    , yaml
   default-language: Haskell2010
 
 executable auth-server-exe
@@ -154,7 +159,9 @@ executable auth-server-exe
     , base
     , bytestring
     , containers
+    , data-default
     , dotenv
+    , exceptions
     , fast-logger
     , generic-lens
     , http-types
@@ -176,6 +183,7 @@ executable auth-server-exe
     , wai
     , wai-extra
     , warp
+    , yaml
   default-language: Haskell2010
 
 test-suite auth-server-test
@@ -224,8 +232,10 @@ test-suite auth-server-test
     , base
     , bytestring
     , containers
+    , data-default
     , directory
     , dotenv
+    , exceptions
     , fast-logger
     , generic-lens
     , hspec
@@ -252,4 +262,5 @@ test-suite auth-server-test
     , wai
     , wai-extra
     , warp
+    , yaml
   default-language: Haskell2010

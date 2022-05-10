@@ -1,22 +1,20 @@
 module API
-  ( API,
-    api,
-    ReaderHandler,
+  ( API
+  , api
   )
 where
 
 import           API.Protected
 import           API.Public
-import           API.Types
 import           Relude
 import           Servant             hiding (BasicAuth)
 import           Servant.Auth.Server
-import           SlimUser
+import           AuthToken
 
 type API =
   PublicAPI
-    :<|> (Auth '[BasicAuth] SlimUser :> BasicAuthProtectedAPI)
-    :<|> (Auth '[JWT, Cookie] SlimUser :> JWTProtectedAPI)
+    :<|> (Auth '[BasicAuth] AuthToken :> BasicAuthProtectedAPI)
+    :<|> (Auth '[JWT, Cookie] AuthToken :> JWTProtectedAPI)
 
 api :: Proxy API
 api = Proxy

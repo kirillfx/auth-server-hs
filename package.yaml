@@ -23,6 +23,7 @@ dependencies:
   - relude
   - bytestring
   - mtl
+  - exceptions
   - transformers
   - aeson
   - servant-server
@@ -42,7 +43,9 @@ dependencies:
   - jose
   - time
   - unix
-  - optparse-applicative 
+  - optparse-applicative
+  - data-default
+  - yaml
   # lenses
   - lens
   - generic-lens

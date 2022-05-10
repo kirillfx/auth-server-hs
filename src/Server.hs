@@ -8,7 +8,8 @@ import           Servant                  hiding (BasicAuth)
 import           Servant.Auth.Server
 import           Server.Protected
 import           Server.Public
+import App
 
 -- Make ServerT from handlers and settings
-serverT :: CookieSettings -> JWTSettings -> ServerT API ReaderHandler
-serverT cs jwts = publicServerT :<|> protectedServerT cs jwts
+serverT :: ServerT API App
+serverT = publicServerT :<|> protectedServerT

@@ -1,6 +1,5 @@
 module API.Protected where
 
-import           API.Types
 import           Data.ByteString
 import           Data.Text           (Text)
 import           Relude
@@ -8,18 +7,18 @@ import           Servant             hiding (BasicAuth)
 import qualified Servant             as S
 import           Servant.Auth.Server
 import           Servant.Client
-import           SlimUser
+import           AuthToken 
 import           User
 
-type BasicAuthProtectedAPI = "login" :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] SlimUser)
+type BasicAuthProtectedAPI = "login" :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] AuthToken)
 
 -- Used for client
-basicAuthProtectedAPI :: Proxy (S.BasicAuth "enter point" SlimUser :> BasicAuthProtectedAPI)
+basicAuthProtectedAPI :: Proxy (S.BasicAuth "enter point" AuthToken :> BasicAuthProtectedAPI)
 basicAuthProtectedAPI = Proxy
 
 type JWTProtectedAPI =
   "userDetails" :> Get '[JSON] User
-    :<|> "delete" :> ReqBody '[JSON] Text :> Post '[JSON] ()
+    :<|> "delete" :> Post '[JSON] ()
     :<|> "auth" :> Get '[JSON] NoContent
 
 -- Used for client

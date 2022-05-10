@@ -9,7 +9,7 @@ import           Relude
 data Options
   = RunService FilePath
   | GenerateJWK FilePath
-  | GenerateToken (FilePath, Int32)
+  | GenerateToken (FilePath, Text)
 
 -- | Parses 'Options' from command line arguments.
 parseOptions :: IO Options
@@ -44,14 +44,14 @@ configParser =
       <> metavar "CONFIGPATH"
 
 -- | Parses '(FilePath, Text)' to use in token generation
-genTokenParser :: Parser (FilePath, Int32)
+genTokenParser :: Parser (FilePath, Text)
 genTokenParser = (,) <$> jwkParser <*> coreUserIdParser
   where
     jwkParser =
       argument str $
         metavar "JWKPATH"
     coreUserIdParser =
-      argument auto $
+      argument str $
         metavar "COREUSERID"
 
 -- | Parses 'FilePath' to where the JWK key for generating JWT is stored.

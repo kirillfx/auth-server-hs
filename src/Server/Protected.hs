@@ -1,8 +1,7 @@
 module Server.Protected where
 
 import           API.Protected
-import           API.Types
-import           AppContext
+import           Env
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Reader
 import           DB
@@ -23,69 +22,87 @@ import           Relude
 import           Servant                hiding (BasicAuth)
 import           Servant.Auth.Server
 import           Servant.Client
-import           SlimUser               (SlimUser)
-import qualified SlimUser
+import AuthToken
 import           System.Log.FastLogger
 import           User
+import App
+import qualified Data.UUID as UUID
+import Control.Lens
+import Data.Generics.Labels
+import Env (Env(csSettings, jwtSettings))
 
-basicAuthProtectedServer :: CookieSettings -> JWTSettings -> AuthResult SlimUser -> ServerT BasicAuthProtectedAPI ReaderHandler
-basicAuthProtectedServer cs jwts (Authenticated user) = loginH
-  where
-    loginH :: ReaderHandler (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] SlimUser)
-    loginH = do
-      let slimUser = user
-      mApplyCookies <- liftIO $ acceptLogin cs jwts slimUser
-      case mApplyCookies of
-        Nothing -> throwError err401
-        Just applyCookies -> do
-          etoken <- liftIO $ makeJWT slimUser jwts Nothing
-          case etoken of
-            Left e -> throwError err401 {errBody = fromString . show $ e}
-            Right token -> do
-              liftIO $ print token
-              return $ applyCookies slimUser
-basicAuthProtectedServer cs jwts _ = throwAll err401
 
-jwtProtectedServerT :: CookieSettings -> JWTSettings -> AuthResult SlimUser -> ServerT JWTProtectedAPI ReaderHandler
-jwtProtectedServerT cs jwts (Authenticated user) = userDetailsH :<|> deleteUserH :<|> authH
-  where
-    userDetailsH :: ReaderHandler User
-    userDetailsH = do
-      (AppContext database logset) <- ask
-      eitherUser <- liftIO $ query database (GetUserByEmail . SlimUser.email $ user)
-      case eitherUser of
-        Left e  -> throwError err500 {errBody = encodeUtf8 e}
-        Right u -> return u
+basicAuthProtectedServer :: AuthResult AuthToken -> ServerT BasicAuthProtectedAPI App
+basicAuthProtectedServer = loginH
 
-    deleteUserH :: Text -> ReaderHandler ()
-    deleteUserH email = do
-      (AppContext database logset) <- ask
-      eitherDelete <- liftIO $ update database (DeleteUser email)
-      case eitherDelete of
-        Left e -> throwError err500 {errBody = encodeUtf8 e}
-        Right u -> do
-          tstamp <- liftIO getCurrentTime
-          let logMsg =
-                LogMessage
-                  { message = email <> " deleted",
-                    timestamp = tstamp,
-                    level = "info"
-                  }
-          liftIO $ pushLogStrLn logset $ toLogStr logMsg
-          return ()
 
-    authH :: ReaderHandler NoContent
-    authH = return NoContent
-jwtProtectedServerT cs jwts _ = throwAll err401
+loginH :: AuthResult AuthToken -> App (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] AuthToken)
+loginH authResult = do
+  authToken <- fromAuthResult authResult
+  cs <- asks csSettings
+  jwts <- asks jwtSettings
+  mApplyCookies <- liftIO $ acceptLogin cs jwts authToken
+  case mApplyCookies of
+    Nothing -> throwError $ NotAuthorized "Can't apply cookies"
+    Just applyCookies -> do
+      etoken <- liftIO $ makeJWT authToken jwts Nothing
+      case etoken of
+        Left e -> throwError $ NotAuthorized . show $ e
+        Right token -> do
+          liftIO $ print token
+          return $ applyCookies authToken
 
-protectedServerT cs jwts = basicAuthProtectedServer cs jwts :<|> jwtProtectedServerT cs jwts
+
+jwtProtectedServerT :: AuthResult AuthToken -> ServerT JWTProtectedAPI App
+jwtProtectedServerT authResult = userDetailsH authResult :<|> deleteUserH authResult :<|> authH
+
+
+userDetailsH :: AuthResult AuthToken -> App User
+userDetailsH authResult = do
+  authToken <- fromAuthResult authResult
+  Env{..} <- ask
+  eitherUser <- liftIO $ query database (GetUserByUserId $ authToken ^. #userId)
+  case eitherUser of
+    Left e  -> throwError $ UnexpectedError . show $ e
+    Right u -> return u
+
+
+userIdFromText :: Text -> App UUID.UUID
+userIdFromText x = case UUID.fromText x of
+  Nothing -> throwError $ UnexpectedError ("Can't decode UUID from: " <> x)
+  Just uuid -> pure uuid
+
+
+deleteUserH :: AuthResult AuthToken -> App ()
+deleteUserH authResult = do
+  userId <- fromAuthResult authResult <&> userId 
+  Env{..} <- ask
+  eitherDelete <- liftIO $ update database (DeleteUser userId)
+  case eitherDelete of
+    Left e -> throwError $ UnexpectedError e
+    Right u -> do
+      tstamp <- liftIO getCurrentTime
+      let logMsg =
+            LogMessage
+              { message = UUID.toText userId <> " deleted",
+                timestamp = tstamp,
+                level = "info"
+              }
+      liftIO $ pushLogStrLn getLogger $ toLogStr logMsg
+      return ()
+
+
+authH :: App NoContent
+authH = return NoContent
+
+protectedServerT = basicAuthProtectedServer :<|> jwtProtectedServerT
 
 -- Basic auth check function for working with AcidState Database
-authCheck :: AcidState Database -> BasicAuthData -> IO (AuthResult SlimUser)
+authCheck :: AcidState Database -> BasicAuthData -> IO (AuthResult AuthToken)
 authCheck database (BasicAuthData ebs pbs) = do
   let e = decodeUtf8 ebs
       p = decodeUtf8 pbs
   eitherUser <- liftIO $ query database (GetUser e p)
   case eitherUser of
     Left e  -> return Indefinite
-    Right u -> return (Authenticated (SlimUser.fromUser u))
+    Right u -> return (Authenticated (AuthToken.fromUser u))
