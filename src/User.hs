@@ -12,10 +12,9 @@ import           Servant.Auth.Server
 $(deriveSafeCopy 0 'base ''UUID)
 
 data User = User
-  { userId       :: UUID,
-    username     :: Text,
-    email        :: Text,
-    passwordHash :: Text
+  { uId           :: UUID,
+    uEmail        :: Text,
+    uPasswordHash :: Text
   }
   deriving stock (Generic, Eq, Show)
 

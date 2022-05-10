@@ -22,17 +22,17 @@ import           User
 
 -- User registration handler
 registerH :: Register -> ReaderHandler ()
-registerH r@(Register u e p) = do
+registerH r@(Register e p) = do
   liftIO . print $ "Register" <> show r
   i <- liftIO nextRandom
   p' <- liftIO $ hashPassword (mkPassword p)
-  let newUser = User i u e (unPasswordHash p')
+  let newUser = User i e (unPasswordHash p')
   (AppContext database logset) <- ask
   eitherUser <- liftIO $ update database (RegisterUser newUser)
   case eitherUser of
     Left e -> throwError err500 {errBody = "Can't register"}
     Right u -> do
-      tstamp <- liftIO $ getCurrentTime
+      tstamp <- liftIO getCurrentTime
       let logMsg =
             LogMessage
               { message = e <> " registered",

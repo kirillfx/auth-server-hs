@@ -13,9 +13,8 @@ import           Servant.Auth.Server
 import           User                 (User)
 import qualified User
 
-data SlimUser = SlimUser
-  { username :: Text,
-    email    :: Text
+newtype SlimUser = SlimUser
+  { email    :: Text
   }
   deriving stock (Generic, Eq, Show)
 
@@ -32,4 +31,4 @@ instance FromBasicAuthData SlimUser where
   fromBasicAuthData authData authCheckFunction = authCheckFunction authData
 
 fromUser :: User -> SlimUser
-fromUser user = SlimUser (User.username user) (User.email user)
+fromUser user = SlimUser (User.uEmail user)

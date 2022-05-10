@@ -64,7 +64,7 @@ jwtProtectedServerT cs jwts (Authenticated user) = userDetailsH :<|> deleteUserH
       case eitherDelete of
         Left e -> throwError err500 {errBody = fromString e}
         Right u -> do
-          tstamp <- liftIO $ getCurrentTime
+          tstamp <- liftIO getCurrentTime
           let logMsg =
                 LogMessage
                   { message = email <> " deleted",

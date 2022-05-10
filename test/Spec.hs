@@ -98,7 +98,7 @@ spec =
           "/register"
           $ do
             it "responds with 200" $ \port -> do
-              let r = Register "kirillfx" "kirillfx@gmail.com" "123"
+              let r = Register "kirillfx@gmail.com" "123"
               res <- runClientM (postRegister r) (clientEnv port)
               liftIO $ print res
               isRight res `shouldBe` True
@@ -125,7 +125,7 @@ spec =
                       hs' = getHeaders hs
                   print u
                   print hs'
-                  (SlimUser.email u) `shouldBe` "kirillfx@gmail.com"
+                  SlimUser.email u `shouldBe` "kirillfx@gmail.com"
 
 -- case loginResponse of
 --   Left e -> expectationFailure "login failed"

@@ -9,9 +9,8 @@ import           Data.Text
 import           Relude
 
 data Register = Register
-  { username :: Text,
-    email    :: Text,
-    password :: Text
+  { rEmail    :: Text,
+    rPassword :: Text
   }
   deriving stock (Generic, Eq, Show)
 
