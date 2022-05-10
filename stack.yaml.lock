@@ -5,15 +5,15 @@
 
 packages:
 - completed:
-    hackage: acid-state-0.16.0.1@sha256:d43f6ee0b23338758156c500290c4405d769abefeb98e9bc112780dae09ece6f,6207
+    hackage: acid-state-0.16.1@sha256:e236ee7b72ffeda8d49b69549a723f0655b0d1b178951c6cc7a1dc6c92783225,6205
     pantry-tree:
       size: 13678
-      sha256: d57bcb2ad5e01fe7424abbcf9e58cf943027b5c4a8496d93625c57b6e1272274
+      sha256: d0e2b86aa444b29dfcaba2f269183a4bdd22787c69eb0ddafda6431447947eab
   original:
-    hackage: acid-state-0.16.0.1
+    hackage: acid-state-0.16.1
 snapshots:
 - completed:
-    size: 532383
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/10.yaml
-    sha256: 469d781ab6d2a4eceed6b31b6e4ec842dcd3cd1d11577972e86902603dce24df
-  original: lts-16.10
+    size: 590100
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/28.yaml
+    sha256: 428ec8d5ce932190d3cbe266b9eb3c175cd81e984babf876b64019e2cbe4ea68
+  original: lts-18.28
