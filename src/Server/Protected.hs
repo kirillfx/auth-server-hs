@@ -38,7 +38,7 @@ basicAuthProtectedServer :: AuthResult AuthToken -> ServerT BasicAuthProtectedAP
 basicAuthProtectedServer = loginH
 
 
-loginH :: AuthResult AuthToken -> App (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] AuthToken)
+loginH :: AuthResult AuthToken -> App (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] Text)
 loginH authResult = do
   authToken <- fromAuthResult authResult
   cs <- asks csSettings
@@ -52,7 +52,7 @@ loginH authResult = do
         Left e -> throwError $ NotAuthorized . show $ e
         Right token -> do
           liftIO $ print token
-          return $ applyCookies authToken
+          return $ applyCookies . decodeUtf8 $ token
 
 
 jwtProtectedServerT :: AuthResult AuthToken -> ToServant JWTProtectedRoutes (AsServerT App)

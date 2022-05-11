@@ -11,7 +11,7 @@ import           Servant.Client
 import           AuthToken 
 import           User
 
-type BasicAuthProtectedAPI = "login" :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] AuthToken)
+type BasicAuthProtectedAPI = "login" :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] Text)
 
 newtype BasicAuthProtectedRoutes route = BasicAuthProtectedRoutes
   { _login :: route :- BasicAuthProtectedAPI
