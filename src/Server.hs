@@ -9,7 +9,15 @@ import           Servant.Auth.Server
 import           Server.Protected
 import           Server.Public
 import App
+import Servant.Server.Generic (genericServerT, AsServerT)
+import Servant.API.Generic (ToServant)
 
--- Make ServerT from handlers and settings
-serverT :: ServerT API App
-serverT = publicServerT :<|> protectedServerT
+
+serverT :: ToServant AuthServiceRoutes (AsServerT App)
+serverT =
+  genericServerT $
+    AuthServiceRoutes
+      { _public = publicServerT
+      , _login = loginH -- ^ BaiscAuth protected endpoint 
+      , _jwtProtected = jwtProtectedServerT
+      }

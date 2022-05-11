@@ -26,6 +26,8 @@ dependencies:
   - exceptions
   - transformers
   - aeson
+  # servant
+  - servant
   - servant-server
   - servant-client
   - wai

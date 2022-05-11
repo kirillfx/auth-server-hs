@@ -19,6 +19,17 @@ import           Servant.Client
 import           System.Log.FastLogger
 import           User
 import App
+import Servant.Server.Generic
+import Servant.API.Generic
+
+publicServerT :: ToServant PublicRoutes (AsServerT App)
+publicServerT =
+  genericServerT $
+    PublicRoutes
+      { _register = registerH
+      , _index = indexH
+      }
+
 
 -- User registration handler
 registerH :: Register -> App ()
@@ -42,8 +53,8 @@ registerH r@(Register e p) = do
       liftIO $ pushLogStrLn getLogger $ toLogStr logMsg
       return ()
 
+
+-- TODO: Does nothing and can be deleted
 indexH :: App Text
 indexH = return "Index"
 
-publicServerT :: ServerT PublicAPI App
-publicServerT = registerH :<|> indexH

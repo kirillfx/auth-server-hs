@@ -1,7 +1,9 @@
 module Server.Protected where
 
 import           API.Protected
-import           Env
+import           App
+import           AuthToken
+import           Control.Lens
 import           Control.Monad.IO.Class (liftIO)
 import           Control.Monad.Reader
 import           DB
@@ -9,27 +11,27 @@ import           Data.Acid
 import           Data.ByteString
 import qualified Data.ByteString        as BS
 import           Data.ByteString.Lazy   as BL
+import           Data.Generics.Labels
 import           Data.Password.Bcrypt
 import           Data.String
 import           Data.Text              (Text)
 import qualified Data.Text              as T
 import           Data.Time.Clock        (getCurrentTime)
+import qualified Data.UUID              as UUID
 import           Data.UUID.V4           (nextRandom)
+import           Env
+import           Env                    (Env (csSettings, jwtSettings))
 import           Logging
 import           Login
 import           Register
 import           Relude
 import           Servant                hiding (BasicAuth)
+import           Servant.API.Generic    (ToServant)
 import           Servant.Auth.Server
 import           Servant.Client
-import AuthToken
+import           Servant.Server.Generic (AsServerT, genericServerT)
 import           System.Log.FastLogger
 import           User
-import App
-import qualified Data.UUID as UUID
-import Control.Lens
-import Data.Generics.Labels
-import Env (Env(csSettings, jwtSettings))
 
 
 basicAuthProtectedServer :: AuthResult AuthToken -> ServerT BasicAuthProtectedAPI App
@@ -53,8 +55,14 @@ loginH authResult = do
           return $ applyCookies authToken
 
 
-jwtProtectedServerT :: AuthResult AuthToken -> ServerT JWTProtectedAPI App
-jwtProtectedServerT authResult = userDetailsH authResult :<|> deleteUserH authResult :<|> authH
+jwtProtectedServerT :: AuthResult AuthToken -> ToServant JWTProtectedRoutes (AsServerT App)
+jwtProtectedServerT authResult =
+  genericServerT $
+    JWTProtectedRoutes
+      { _userDetails = userDetailsH authResult
+      , _delete = deleteUserH authResult
+      , _auth = authH authResult
+      }
 
 
 userDetailsH :: AuthResult AuthToken -> App User
@@ -69,13 +77,13 @@ userDetailsH authResult = do
 
 userIdFromText :: Text -> App UUID.UUID
 userIdFromText x = case UUID.fromText x of
-  Nothing -> throwError $ UnexpectedError ("Can't decode UUID from: " <> x)
+  Nothing   -> throwError $ UnexpectedError ("Can't decode UUID from: " <> x)
   Just uuid -> pure uuid
 
 
-deleteUserH :: AuthResult AuthToken -> App ()
+deleteUserH :: AuthResult AuthToken -> App NoContent
 deleteUserH authResult = do
-  userId <- fromAuthResult authResult <&> userId 
+  userId <- fromAuthResult authResult <&> userId
   Env{..} <- ask
   eitherDelete <- liftIO $ update database (DeleteUser userId)
   case eitherDelete of
@@ -89,11 +97,12 @@ deleteUserH authResult = do
                 level = "info"
               }
       liftIO $ pushLogStrLn getLogger $ toLogStr logMsg
-      return ()
+      return NoContent
 
 
-authH :: App NoContent
-authH = return NoContent
+authH :: AuthResult AuthToken -> App NoContent
+authH authResult = fromAuthResult authResult $> NoContent
+
 
 protectedServerT = basicAuthProtectedServer :<|> jwtProtectedServerT
 
