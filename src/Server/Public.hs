@@ -21,6 +21,10 @@ import           User
 import App
 import Servant.Server.Generic
 import Servant.API.Generic
+import Network.HTTP.Client (setQueryStringPartialEscape, httpNoBody, setQueryString)
+import qualified Data.UUID as UUID
+import Env
+import qualified Data.ByteString.Lazy as LBS
 
 publicServerT :: ToServant PublicRoutes (AsServerT App)
 publicServerT =
@@ -50,7 +54,13 @@ registerH r@(Register e p) = do
                 timestamp = tstamp,
                 level = "info"
               }
+
+      -- call webhooks
+      let qsApply = setQueryString [("userId", Just . LBS.toStrict . UUID.toByteString $ i)]
+      liftIO $ mapM_ (\r -> httpNoBody (qsApply r) manager) webhooks
+
       liftIO $ pushLogStrLn getLogger $ toLogStr logMsg
+
       return ()
 
 

@@ -36,6 +36,8 @@ dependencies:
   - warp
   - text
   - http-types
+  - http-client
+  - http-client-tls
   - password
   - uuid
   - safecopy

@@ -3,3 +3,4 @@ web-hooks:
 - http://localhost:3000/profile
 port: 8080
 acid-path: ./db
+webhooks: []

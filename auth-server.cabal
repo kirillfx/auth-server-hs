@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8d9b4c6ac64b54430c198f8875182f319347f325d4ecf50c2a7a47790fb9c971
+-- hash: 94e2d47a64243be1a7c4377a5115be02f14e32c071ce79b062e58fda1c7dfde2
 
 name:           auth-server
 version:        0.1.0.0
@@ -92,6 +92,8 @@ library
     , exceptions
     , fast-logger
     , generic-lens
+    , http-client
+    , http-client-tls
     , http-types
     , jose
     , lens
@@ -165,6 +167,8 @@ executable auth-server-exe
     , exceptions
     , fast-logger
     , generic-lens
+    , http-client
+    , http-client-tls
     , http-types
     , jose
     , lens
@@ -244,6 +248,7 @@ test-suite auth-server-test
     , hspec-wai
     , hspec-wai-json
     , http-client
+    , http-client-tls
     , http-types
     , jose
     , lens

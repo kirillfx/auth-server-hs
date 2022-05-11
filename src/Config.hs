@@ -2,16 +2,16 @@ module Config
   ( Config(..)
   ) where
 
-import Data.Aeson
-import Relude
-import Json
-import Data.Set (Set)
+import           Data.Aeson
+import           Data.Set   (Set)
+import           Json
+import           Relude
 
 data Config = Config
-  { cfgPort :: Int
-  , cfgKeyPath :: FilePath
+  { cfgPort     :: Int
+  , cfgKeyPath  :: FilePath
   , cfgAcidPath :: FilePath
-  , cfgWebHooks :: Set Text
+  , cfgWebhooks :: Set Text
   }
   deriving stock (Generic, Show, Eq)
 

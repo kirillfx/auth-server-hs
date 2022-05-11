@@ -1,18 +1,26 @@
 module Application where
 
 import           API
-import           Env
+import           App
 import           AuthToken
+import           Config
 import           Control.Exception                         (bracket)
 import           Control.Monad                             (void)
+import           Control.Monad.Cont
 import           Control.Monad.Reader
 import           Crypto.JOSE.JWK                           (JWK)
+import           Cryptography
 import           DB
 import           Data.Acid
+import qualified Data.ByteString.Lazy                      as LBS
+import qualified Data.Set                                  as S
 import           Data.String                               (fromString)
+import qualified Data.Text                                 as T
 import           Data.Time.Clock                           (getCurrentTime)
 import           Env
 import           Logging
+import           Network.HTTP.Client                       (parseRequest)
+import           Network.HTTP.Client.TLS                   (newTlsManager)
 import           Network.Wai                               (Middleware)
 import           Network.Wai.Handler.Warp                  (Settings,
                                                             defaultSettings,
@@ -25,6 +33,7 @@ import           Network.Wai.Middleware.RequestLogger.JSON
 import           Register
 import           Relude
 import           Servant
+import           Servant                                   (Server)
 import           Servant.Auth.Server
 import           Server
 import           Server.Protected
@@ -35,11 +44,6 @@ import           System.Posix.Signals                      (Handler (..),
                                                             installHandler,
                                                             sigINT, sigTERM)
 import           User
-import Servant (Server)
-import App
-import Config
-import Cryptography
-import Control.Monad.Cont
 
 run :: Config -> IO ()
 run Config{..} = do
@@ -68,25 +72,24 @@ run Config{..} = do
         (\db -> closeAcidState db >> print "Acid State closed")
 
       finalAction db = do
+        webhooks <- mapM (parseRequest . T.unpack) . S.toList $ cfgWebhooks
 
-        
-        let env = Env db appLogger
-
+        manager <- newTlsManager
          -- Servant context assembly
         let jwts = defaultJWTSettings jwk
             cs = defaultCookieSettings {cookieIsSecure = NotSecure}
             authCfg = authCheck db :: BasicAuthCfg
             cfg = cs :. jwts :. authCfg :. EmptyContext
             cfgProxy = Proxy :: Proxy '[CookieSettings, JWTSettings, BasicAuthCfg]
-            env = Env db appLogger jwts cs 
+            env = Env db appLogger jwts cs webhooks manager
             server = hoistServerWithContext api cfgProxy (nt env) serverT
 
             -- Application
-            app = serveWithContext api cfg server 
+            app = serveWithContext api cfg server
 
         runSettings settings . warpLogger $ app
 
-        
+
   runContT dbBracket finalAction
 
   exitSuccess
