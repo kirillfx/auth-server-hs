@@ -22,7 +22,7 @@ opts =
     fullDesc
       <> progDesc
         "Run executable in service, jwk generation, token generation modes."
-      <> header "core-api"
+      <> header "auth-service"
 
 -- | Parses command line options.
 cliArgs :: Parser Options
