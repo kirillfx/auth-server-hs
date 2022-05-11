@@ -15,7 +15,7 @@ type PublicAPI =
 
 
 data PublicRoutes route = PublicRoutes
-  { _register :: route :- "register" :> ReqBody '[JSON] Register :> Post '[JSON] ()
+  { _register :: route :- "register" :> ReqBody '[JSON] Register :> Post '[JSON] (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] Text)
   , _index :: route :- "index" :> Get '[JSON] Text
   }
   deriving stock Generic

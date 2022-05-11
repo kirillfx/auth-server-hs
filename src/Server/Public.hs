@@ -25,6 +25,9 @@ import Network.HTTP.Client (setQueryStringPartialEscape, httpNoBody, setQueryStr
 import qualified Data.UUID as UUID
 import Env
 import qualified Data.ByteString.Lazy as LBS
+import Control.Monad.Except (liftEither)
+import AuthToken
+import Env (Env(jwtSettings))
 
 publicServerT :: ToServant PublicRoutes (AsServerT App)
 publicServerT =
@@ -36,17 +39,20 @@ publicServerT =
 
 
 -- User registration handler
-registerH :: Register -> App ()
+registerH :: Register -> App (Headers '[Header "Set-Cookie" SetCookie, Header "Set-Cookie" SetCookie] Text)
 registerH r@(Register e p) = do
   liftIO . print $ "Register" <> show r
   i <- liftIO nextRandom
   p' <- liftIO $ hashPassword (mkPassword p)
   let newUser = User i e (unPasswordHash p')
+      authToken = fromUser newUser
   Env{..} <- ask
-  eitherUser <- liftIO $ update database (RegisterUser newUser)
-  case eitherUser of
-    Left e -> throwError $ UnexpectedError "Can't register"
-    Right u -> do
+  user <- liftIO (update database (RegisterUser newUser)) >>= liftEither . first UnexpectedError
+  token <- liftIO (makeJWT authToken jwtSettings Nothing) >>= liftEither . first (UnexpectedError . show)
+  mApplyCookies <- liftIO $ acceptLogin csSettings jwtSettings authToken
+  case mApplyCookies of
+    Nothing -> throwError $ NotAuthorized "Can't apply cookies"
+    Just applyCookies -> do
       tstamp <- liftIO getCurrentTime
       let logMsg =
             LogMessage
@@ -58,10 +64,9 @@ registerH r@(Register e p) = do
       -- call webhooks
       let qsApply = setQueryString [("userId", Just . LBS.toStrict . UUID.toByteString $ i)]
       liftIO $ mapM_ (\r -> httpNoBody (qsApply r) manager) webhooks
-
       liftIO $ pushLogStrLn getLogger $ toLogStr logMsg
 
-      return ()
+      return $ applyCookies . decodeUtf8 $ token
 
 
 -- TODO: Does nothing and can be deleted
