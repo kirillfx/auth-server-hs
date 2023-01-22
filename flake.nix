@@ -1,6 +1,6 @@
 {
   description = "auth-server flake";
-  inputs.haskellNix.url = "github:input-output-hk/haskell.nix";
+  inputs.haskellNix.url = "github:input-output-hk/haskell.nix/8559bf9d72928986b5445841d1bada082103ab2c";
   inputs.nixpkgs.follows = "haskellNix/nixpkgs-unstable";
   inputs.flake-utils.url = "github:numtide/flake-utils";
   outputs = { self, nixpkgs, flake-utils, haskellNix }:
@@ -12,14 +12,15 @@
           auth-server =
             final.haskell-nix.project' {
               src = ./.;
-              compiler-nix-name = "ghc8107";
+              compiler-nix-name = "ghc925";
               # This is used by `nix develop .` to open a shell for use with
               # `cabal`, `hlint` and `haskell-language-server`
               shell.tools = {
                 cabal = {};
                 hlint = {};
-                haskell-language-server = {};
-                emacs = {};
+                haskell-language-server = {
+                  version = "latest";
+                };
               };
               # Non-Haskell shell tools go here
               shell.buildInputs = with pkgs; [
