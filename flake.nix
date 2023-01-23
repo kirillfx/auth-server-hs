@@ -1,6 +1,6 @@
 {
   description = "auth-server flake";
-  inputs.haskellNix.url = "github:input-output-hk/haskell.nix/8559bf9d72928986b5445841d1bada082103ab2c";
+  inputs.haskellNix.url = "github:input-output-hk/haskell.nix";
   inputs.nixpkgs.follows = "haskellNix/nixpkgs-unstable";
   inputs.flake-utils.url = "github:numtide/flake-utils";
   outputs = { self, nixpkgs, flake-utils, haskellNix }:
