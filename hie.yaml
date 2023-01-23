@@ -1,0 +1,10 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "auth-server:lib"
+
+    - path: "./app/Main.hs"
+      component: "auth-server:exe:auth-server-exe"
+
+    # - path: "./test"
+    #   component: "auth-server:test:auth-server-test"
